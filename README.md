@@ -1,5 +1,10 @@
 # CC-Forge
 
+[![npm](https://img.shields.io/npm/v/cc-forge)](https://www.npmjs.com/package/cc-forge)
+[![npm downloads](https://img.shields.io/npm/dm/cc-forge)](https://www.npmjs.com/package/cc-forge)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node >=16](https://img.shields.io/badge/node-%3E%3D16-brightgreen.svg)](https://nodejs.org)
+
 **Engineering discipline for developers who can't afford to skip the important stuff.**
 
 You know the right way to do things. Write the spec first. Review the blast radius before refactoring. Run the security audit. Keep the docs current. Write the test before the code. You know — you just don't always have time.
