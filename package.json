@@ -2,7 +2,20 @@
   "name": "cc-forge",
   "version": "0.1.0",
   "description": "CC-Forge: Claude Code coherence engine — global installer and project init CLI",
+  "author": {
+    "name": "David",
+    "email": "dkay@fastmail.com",
+    "url": "https://github.com/daresTheDevil"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/daresTheDevil/cc-forge#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daresTheDevil/cc-forge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/daresTheDevil/cc-forge/issues"
+  },
   "bin": {
     "cc-forge": "bin/cc-forge",
     "forge": "bin/forge"
@@ -16,7 +29,8 @@
     "loops/",
     "skills/",
     "templates/",
-    "install.sh"
+    "install.sh",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=16"

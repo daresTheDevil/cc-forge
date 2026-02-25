@@ -26,12 +26,12 @@ jobs:
 
       - name: Check bin scripts are executable
         run: |
-          test -x bin/forge-cc || (echo "bin/forge-cc is not executable" && exit 1)
+          test -x bin/cc-forge || (echo "bin/cc-forge is not executable" && exit 1)
           test -x bin/forge    || (echo "bin/forge is not executable" && exit 1)
 
       - name: Validate bash syntax
         run: |
-          bash -n bin/forge-cc
+          bash -n bin/cc-forge
           bash -n bin/forge
           bash -n install.sh
 

@@ -1,10 +1,10 @@
 # CC-Forge
 
-**A coherence engine for developers who manage complex stacks alone.**
+**Engineering discipline for developers who can't afford to skip the important stuff.**
 
-You're running microk8s, two databases, a Nuxt frontend, a legacy PHP service, and a handful of Python/Node APIs. You're the architect, the security team, the code reviewer, and the on-call engineer — all at once. Things drift. Docs fall behind. Tests get skipped. Nobody catches the blast radius before a refactor lands sideways.
+You know the right way to do things. Write the spec first. Review the blast radius before refactoring. Run the security audit. Keep the docs current. Write the test before the code. You know — you just don't always have time.
 
-CC-Forge is the engineering discipline system you never had time to build yourself. It layers structured workflow modes, parallel AI code review, automated security enforcement, and a continuous improvement loop directly into your Claude Code environment — all driven by slash commands and shell scripts you actually control.
+CC-Forge enforces the discipline you already believe in. It installs structured workflow modes, parallel AI code review, automated security gates, and a continuous improvement loop directly into your Claude Code environment. The scaffolding is already built. You just have to show up and do the work.
 
 ---
 
@@ -31,7 +31,7 @@ cc-forge --global
 Or clone and install from source:
 
 ```bash
-git clone https://github.com/yourusername/cc-forge
+git clone https://github.com/daresTheDevil/cc-forge
 cd cc-forge
 /opt/homebrew/bin/bash install.sh --global
 ```
@@ -80,6 +80,30 @@ CC-Forge installs three layers into your environment:
 ```
 
 Config inherits in cascade: `forge.toml` → `workspace.toml` → `project.toml`. Projects can only tighten constraints, never loosen them.
+
+---
+
+## The Coherence Engine
+
+Most engineering tools help you build things. CC-Forge also tracks the relationships between things — across code, infrastructure, security, docs, and CI — and detects when declared reality drifts from observed reality.
+
+At the center is `project-graph.json`: a structured registry of every entity in your system and how they relate to each other.
+
+```json
+{
+  "entities": [
+    { "id": "svc-auth-api", "kind": "service", "path": "services/auth-api" },
+    { "id": "db-sql-users", "kind": "database", "path": "sql/users" }
+  ],
+  "relationships": [
+    { "from": "svc-auth-api", "to": "db-sql-users", "type": "writes-to" }
+  ]
+}
+```
+
+Every workflow mode reads this registry. `/forge--blast` uses it to map what a change will touch before it happens. `/forge--drift-check` compares it against the actual codebase to find what's diverged. `/forge--recon` populates it when you onboard a new project. `/forge--build` reads it to understand blast radius before touching any code.
+
+The result: Claude Code always knows the shape of your system, not just the file it's currently editing.
 
 ---
 
@@ -193,6 +217,16 @@ block_destructive_db = true
 ```
 
 Three-layer cascade: `forge.toml` (machine) → `workspace.toml` (domain) → `project.toml` (repo). Projects can tighten any constraint but cannot loosen machine-wide or workspace-level gates.
+
+---
+
+## Inspired By
+
+CC-Forge stands on the shoulders of some genuinely good ideas:
+
+- **[Claude Code](https://docs.anthropic.com/claude-code)** — Anthropic's CLI that makes all of this possible. The hooks system, slash commands, and headless `claude -p` invocation are what CC-Forge is built on top of.
+- **[The Ralph Loop](https://shipyard.build/blog/claude-code-ralph-loop/)** — the pattern of using a shell script as the loop controller with Claude as a single-iteration executor. Separating "when to iterate" from "what to do in an iteration" is the insight that makes the Forge Loop reliable. Anthropic now ships an [official Ralph Wiggum plugin](https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum) for Claude Code.
+- **[get-shit-done](https://github.com/gsd-build/get-shit-done)** by TÂCHES — the spec-driven development workflow (DISCUSS → SPEC → PLAN → BUILD) that seeded CC-Forge's mode structure. The philosophy that a good system removes the friction between knowing what to do and actually doing it.
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # forge — CC-Forge project CLI
-# Installed via: pnpm add -g forge-cc
+# Installed via: npm install -g cc-forge
 #
 # Usage:
 #   forge init [workspace-id]   Initialize CC-Forge in the current project
@@ -49,7 +49,7 @@ case "$SUBCMD" in
     fi
     ;;
   version|--version|-v)
-    TOML="${PACKAGE_DIR}/forge.toml"
+    TOML="${PACKAGE_DIR}/templates/forge.toml"
     if [ -f "$TOML" ]; then
       grep '^version' "$TOML" | head -1
     else

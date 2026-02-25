@@ -2,9 +2,9 @@
 # forge-cc — CC-Forge global installer
 #
 # Usage:
-#   pnpm dlx forge-cc              Install CC-Forge globally to ~/.claude/
-#   pnpm dlx forge-cc --force      Overwrite existing files
-#   forge-cc                       Same (when installed globally via pnpm add -g)
+#   pnpm dlx cc-forge              Install CC-Forge globally to ~/.claude/
+#   pnpm dlx cc-forge --force      Overwrite existing files
+#   cc-forge                       Same (when installed globally via npm/pnpm)
 #
 # After this runs, `forge` is available for per-project use:
 #   forge init                     Initialize CC-Forge in a project
