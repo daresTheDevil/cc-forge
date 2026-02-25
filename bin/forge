@@ -16,8 +16,14 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Locate install.sh — npm package location takes priority over deployed copy,
 # ensuring the globally-installed package version is always used.
+# Resolve symlinks first so dirname works correctly for global npm installs
+# (e.g. /opt/homebrew/bin/forge → .../node_modules/cc-forge/bin/forge).
 # ---------------------------------------------------------------------------
-PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+_SCRIPT="${BASH_SOURCE[0]}"
+if command -v realpath >/dev/null 2>&1; then
+  _SCRIPT="$(realpath "$_SCRIPT")"
+fi
+PACKAGE_DIR="$(cd "$(dirname "$_SCRIPT")/.." && pwd)"
 
 if [ -f "${PACKAGE_DIR}/install.sh" ]; then
   FORGE_INSTALL="${PACKAGE_DIR}/install.sh"
@@ -66,22 +72,16 @@ case "$SUBCMD" in
     exec "$FORGE_LOOP" "$@"
     ;;
   update)
-    printf 'Fetching latest CC-Forge...\n'
-    if command -v pnpm >/dev/null 2>&1; then
-      exec pnpm dlx cc-forge@latest --force
-    elif command -v npx >/dev/null 2>&1; then
-      exec npx cc-forge@latest --force
-    else
-      printf 'Error: pnpm or npx required. Install pnpm: https://pnpm.io\n' >&2
-      exit 1
-    fi
+    printf '[CC-Forge] Updating to latest version...\n'
+    npm install -g cc-forge@latest
+    cc-forge --force
     ;;
   version|--version|-v)
-    TOML="${PACKAGE_DIR}/templates/forge.toml"
-    if [ -f "$TOML" ]; then
-      grep '^version' "$TOML" | head -1
+    PKG="${PACKAGE_DIR}/package.json"
+    if [ -f "$PKG" ] && command -v jq >/dev/null 2>&1; then
+      printf 'CC-Forge v%s\n' "$(jq -r '.version' "$PKG")"
     else
-      printf 'CC-Forge 0.1.0\n'
+      printf 'CC-Forge (version unknown)\n'
     fi
     ;;
   help|--help|-h|'')

@@ -1,6 +1,6 @@
 {
   "name": "cc-forge",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "CC-Forge: Claude Code coherence engine — global installer and project init CLI",
   "author": {
     "name": "David",
