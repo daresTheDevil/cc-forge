@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-02-25
+
+### Added
+- `forge build` auto-detects newest `plan-*.md` when no file specified
+- `forge build [plan.md]` and `forge improve [--scope]` subcommands on the `forge` CLI
+- Developer workflow journeys in README (onboarding, feature build, incident response, continuous improvement)
+- npm badges (version, downloads, license, node version)
+
+### Changed
+- Restructured flat file layout into subdirectories (`commands/`, `agents/`, `hooks/`, `loops/`, `skills/`, `templates/`)
+- Renamed project from `forge-cc` to `cc-forge` throughout
+- README reframed around engineering discipline; coherence engine gets its own section
+- Inspired By section with Ralph Loop and get-shit-done links
+- `bin/forge` and `bin/cc-forge` stale reference fixes
+
 ## [0.1.0] - 2026-02-25
 
 ### Added
