@@ -45,6 +45,16 @@ case "$SUBCMD" in
       printf '[CC-Forge] ❌ build loop not found. Run: cc-forge --global to install.\n' >&2
       exit 1
     fi
+    if [ $# -eq 0 ] || [[ "${1:-}" == --* ]]; then
+      PLAN_FILE="$(ls -t plan-*.md 2>/dev/null | head -1)"
+      if [ -z "$PLAN_FILE" ]; then
+        printf '[CC-Forge] ❌ No plan-*.md file found in current directory.\n' >&2
+        printf 'Create one with /forge--plan or specify: forge build <plan.md>\n' >&2
+        exit 1
+      fi
+      printf '[CC-Forge] Using newest plan: %s\n' "$PLAN_FILE"
+      exec "$BUILD_SH" "$PLAN_FILE" "$@"
+    fi
     exec "$BUILD_SH" "$@"
     ;;
   improve)

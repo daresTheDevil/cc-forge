@@ -158,7 +158,8 @@ Breaks the spec into an implementation graph with explicit task dependencies and
 Maps every entity and relationship the feature will touch. If it crosses domain boundaries, you know before you start — not after.
 
 ```bash
-forge build plan-sso.md
+forge build plan-sso.md      # explicit plan file
+forge build                  # auto-uses the newest plan-*.md in the current directory
 ```
 Headless TDD build loop. Claude writes the failing test first, implements until it passes, commits, moves to the next task. You come back to working, tested, committed code.
 
