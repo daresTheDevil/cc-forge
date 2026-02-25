@@ -1,0 +1,72 @@
+name: Publish to npm
+
+on:
+  # Validate on every push to main and on PRs
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Publish only when a GitHub Release is published
+  release:
+    types: [published]
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Always runs: confirms the package packs cleanly before anything ships
+  # -------------------------------------------------------------------------
+  validate:
+    name: Validate package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check bin scripts are executable
+        run: |
+          test -x bin/forge-cc || (echo "bin/forge-cc is not executable" && exit 1)
+          test -x bin/forge    || (echo "bin/forge is not executable" && exit 1)
+
+      - name: Validate bash syntax
+        run: |
+          bash -n bin/forge-cc
+          bash -n bin/forge
+          bash -n install.sh
+
+      - name: Dry-run pack (confirm files list is clean)
+        run: npm pack --dry-run
+
+  # -------------------------------------------------------------------------
+  # Only runs on GitHub Release → publish → npm
+  # -------------------------------------------------------------------------
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      contents: read
+      id-token: write   # required for OIDC Trusted Publisher auth + provenance
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Confirm package.json version matches release tag
+        run: |
+          PKG_VERSION="v$(node -p "require('./package.json').version")"
+          TAG_VERSION="${{ github.event.release.tag_name }}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "Version mismatch: package.json has $PKG_VERSION but release tag is $TAG_VERSION"
+            exit 1
+          fi
+          echo "Version check passed: $PKG_VERSION"
+
+      - name: Publish
+        run: npm publish --provenance --access public
