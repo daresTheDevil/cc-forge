@@ -1,0 +1,161 @@
+# ~/.claude/forge/forge.toml
+# CC-Forge Global Configuration
+# This file defines the topology, enforcement posture, and feature flags
+# for all CC-Forge managed projects on this machine/environment.
+
+[forge]
+version = "1.0"
+topology = "workspace"          # single | workspace | multi-workspace
+
+# ---------------------------------------------------------------------------
+# LAYERS
+# Defines the inheritance chain. Resolution order: global → workspace → local
+# ---------------------------------------------------------------------------
+
+[layers.global]
+path = "~/.claude/forge"
+description = "Forge Standard Library — engineering philosophy and baseline skills"
+
+[layers.workspace]
+enabled = true
+discovery = "registry"          # registry | symlink | env | explicit
+registry_path = "~/.claude/forge/workspace-registry.toml"
+
+  # Inheritance behavior at the local layer
+  [layers.workspace.inheritance]
+  mode = "auto"                 # auto | explicit (explicit = project must declare)
+  allow_layer_skip = false      # projects cannot bypass workspace layer
+
+[layers.local]
+config_file = ".claude/forge/project.toml"   # relative to project root
+
+  # What local can and cannot do relative to workspace/global
+  [layers.local.override_policy]
+  mode = "extend"               # extend | strict | break-glass
+  # extend      = local can add rules on top, never remove
+  # strict      = local inherits exactly, no overrides at all
+  # break-glass = overrides allowed but logged and require justification string
+
+  break_glass_requires_justification = true
+  break_glass_max_ttl_days = 7
+
+# ---------------------------------------------------------------------------
+# ENFORCEMENT
+# Which skills are mandatory (loaded always) vs advisory (loaded when relevant)
+# ---------------------------------------------------------------------------
+
+[enforcement]
+posture = "security-first"      # security-first | balanced | advisory-only
+
+  [enforcement.mandatory_skills]
+  skills = ["security"]         # These load on every session regardless of domain or mode
+                                # Mandatory skills cannot be disabled at workspace or local level
+
+  [enforcement.advisory_skills]
+  skills = ["k8s", "database", "api", "frontend", "ci", "migrations"]
+  # Advisory skills can be extended or supplemented at lower layers
+
+# ---------------------------------------------------------------------------
+# WORKSPACES
+# Registry is the source of truth — see workspace-registry.toml for mappings
+# These are workspace definitions; project→workspace mapping lives in registry
+# ---------------------------------------------------------------------------
+
+[[workspaces]]
+id          = "platform"
+name        = "Platform Infrastructure"
+description = "k8s cluster, databases, CI/CD, shared services"
+path        = "~/.claude/forge/workspaces/platform"
+
+[[workspaces]]
+id          = "applications"
+name        = "Application Layer"
+description = "Nuxt frontend, API services, legacy PHP"
+path        = "~/.claude/forge/workspaces/applications"
+
+[[workspaces]]
+id          = "data"
+name        = "Data & Integrations"
+description = "SQL Server, Oracle, ETL, reporting services"
+path        = "~/.claude/forge/workspaces/data"
+
+# ---------------------------------------------------------------------------
+# FEATURES
+# All on by default. Can be disabled at workspace or local scope.
+# Disabling at local scope requires a justification if break-glass is active.
+# ---------------------------------------------------------------------------
+
+[features.forge_loop]
+enabled                   = true
+trigger                   = "auto"    # auto | manual | scheduled
+auto_trigger_after_builds = 5         # run loop after every N build cycles
+improvement_threshold     = 0.05      # stop loop if delta < 5% improvement
+max_iterations            = 10
+
+[features.drift_detection]
+enabled        = true
+run_on         = ["pre-build", "post-deploy"]
+grade_findings = true
+
+[features.simplify_pass]
+enabled             = true
+trigger             = "manual"        # usually deliberate, not automatic
+min_complexity_delta = 0.10           # only act if reduction >= 10%
+
+[features.blast_radius_analysis]
+enabled = true
+scope   = "workspace"                 # local | workspace | global
+
+[features.coherence_registry]
+enabled = true
+
+# ---------------------------------------------------------------------------
+# WORKFLOW
+# Mode system definitions live in global skills — this section tunes behavior
+# ---------------------------------------------------------------------------
+
+[workflow]
+default_mode                  = "discuss"   # sessions start here unless context is clear
+require_spec_before_build     = true
+require_plan_before_build     = true
+require_tests_before_implement = true       # TDD enforcement
+
+  [workflow.modes]
+  discuss  = true
+  spec     = true
+  plan     = true
+  build    = true
+  improve  = true
+  simplify = true
+
+# ---------------------------------------------------------------------------
+# COHERENCE REGISTRY
+# Where the relationship graph lives and how it's maintained
+# ---------------------------------------------------------------------------
+
+[coherence_registry]
+format                   = "json"
+global_graph             = "~/.claude/forge/registry/global-graph.json"
+workspace_graph_pattern  = "~/.claude/forge/workspaces/{workspace_id}/registry/graph.json"
+local_graph_file         = ".claude/forge/registry/project-graph.json"
+auto_update_on_build     = true
+snapshot_on_deploy       = true
+
+# ---------------------------------------------------------------------------
+# GRADING
+# How findings from drift, blast radius, and Forge Loop are scored
+# ---------------------------------------------------------------------------
+
+[grading.blast_radius]
+low      = { max_edges = 5  }
+medium   = { max_edges = 20 }
+high     = { max_edges = 50 }
+critical = { min_edges = 51 }
+
+[grading.drift]
+dimensions           = ["blast_radius", "security_impact", "recoverability"]
+auto_block_on_critical = true
+
+[grading.security]
+fail_on_severity      = "high"
+advisories_as_warnings = true

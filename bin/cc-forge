@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+# forge-cc — CC-Forge global installer
+#
+# Usage:
+#   pnpm dlx forge-cc              Install CC-Forge globally to ~/.claude/
+#   pnpm dlx forge-cc --force      Overwrite existing files
+#   forge-cc                       Same (when installed globally via pnpm add -g)
+#
+# After this runs, `forge` is available for per-project use:
+#   forge init                     Initialize CC-Forge in a project
+#   forge init [workspace-id]      Initialize with a specific workspace
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Colors
+# ---------------------------------------------------------------------------
+if [ -t 1 ] && command -v tput >/dev/null 2>&1; then
+  BOLD=$(tput bold); CYAN=$(tput setaf 6); GREEN=$(tput setaf 2)
+  YELLOW=$(tput setaf 3); RESET=$(tput sgr0)
+else
+  BOLD="" CYAN="" GREEN="" YELLOW="" RESET=""
+fi
+
+info()    { printf '%s[CC-Forge]%s %s\n' "$CYAN"   "$RESET" "$*"; }
+success() { printf '%s[CC-Forge]%s ✅ %s\n' "$GREEN"  "$RESET" "$*"; }
+warn()    { printf '%s[CC-Forge]%s ⚠️  %s\n' "$YELLOW" "$RESET" "$*"; }
+
+# ---------------------------------------------------------------------------
+# Locate install.sh relative to this script (works in pnpm dlx temp location
+# and in a globally-installed npm package)
+# ---------------------------------------------------------------------------
+PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+INSTALL_SH="${PACKAGE_DIR}/install.sh"
+
+if [ ! -f "$INSTALL_SH" ]; then
+  printf '[CC-Forge] ❌ install.sh not found at %s\n' "$INSTALL_SH" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Step 1: Run global install (copies all artifacts to ~/.claude/)
+# ---------------------------------------------------------------------------
+"$INSTALL_SH" --global "$@"
+
+# ---------------------------------------------------------------------------
+# Step 2: Deploy the `forge` CLI to a stable, PATH-able location.
+#
+# `pnpm dlx` runs from a temp dir that won't persist — so the npm bin/forge
+# script disappears after this command exits. We write a deployed copy to
+# ~/.claude/forge/bin/forge so `forge init` works in any future terminal.
+# ---------------------------------------------------------------------------
+FORGE_BIN_DIR="${HOME}/.claude/forge/bin"
+FORGE_BIN="${FORGE_BIN_DIR}/forge"
+mkdir -p "$FORGE_BIN_DIR"
+
+cat > "$FORGE_BIN" << 'FORGE_EOF'
+#!/usr/bin/env bash
+# forge — CC-Forge project CLI
+# Deployed to ~/.claude/forge/bin/forge by: pnpm dlx forge-cc
+set -euo pipefail
+
+FORGE_INSTALL="$HOME/.claude/forge/install.sh"
+
+SUBCMD="${1:-help}"
+shift || true
+
+case "$SUBCMD" in
+  init)
+    if [ ! -f "$FORGE_INSTALL" ]; then
+      printf 'Error: CC-Forge not installed globally. Run: pnpm dlx cc-forge\n' >&2
+      exit 1
+    fi
+    exec "$FORGE_INSTALL" --project "$@"
+    ;;
+  update)
+    printf 'Fetching latest CC-Forge...\n'
+    if command -v pnpm >/dev/null 2>&1; then
+      exec pnpm dlx cc-forge@latest --force
+    elif command -v npx >/dev/null 2>&1; then
+      exec npx cc-forge@latest --force
+    else
+      printf 'Error: pnpm or npx required to update. Install pnpm: https://pnpm.io\n' >&2
+      exit 1
+    fi
+    ;;
+  version|--version|-v)
+    TOML="$HOME/.claude/forge/forge.toml"
+    if [ -f "$TOML" ]; then
+      grep '^version' "$TOML" | head -1
+    else
+      printf 'CC-Forge (version unknown — run: pnpm dlx cc-forge)\n'
+    fi
+    ;;
+  help|--help|-h|'')
+    printf 'CC-Forge CLI\n\n'
+    printf 'Usage: forge <command> [options]\n\n'
+    printf 'Commands:\n'
+    printf '  init [workspace-id]   Initialize CC-Forge in the current project\n'
+    printf '  init --force          Re-initialize, overwriting existing files\n'
+    printf '  update                Update to the latest CC-Forge version\n'
+    printf '  version               Show installed version\n'
+    printf '  help                  Show this help\n\n'
+    printf 'Examples:\n'
+    printf '  forge init\n'
+    printf '  forge init applications\n'
+    printf '  forge init --force\n\n'
+    printf 'After init, open Claude Code in the project and run /forge--recon\n'
+    ;;
+  *)
+    printf 'Unknown command: %s\n' "$SUBCMD" >&2
+    printf 'Run: forge help\n' >&2
+    exit 1
+    ;;
+esac
+FORGE_EOF
+
+chmod +x "$FORGE_BIN"
+success "forge CLI deployed: ${FORGE_BIN}"
+
+# ---------------------------------------------------------------------------
+# Step 3: Add ~/.claude/forge/bin to PATH in shell profiles (idempotent)
+# ---------------------------------------------------------------------------
+PATH_LINE='export PATH="$HOME/.claude/forge/bin:$PATH"  # CC-Forge'
+ADDED_TO=()
+
+for RC_FILE in "${HOME}/.zshrc" "${HOME}/.bashrc" "${HOME}/.bash_profile"; do
+  if [ -f "$RC_FILE" ] && ! grep -q 'claude/forge/bin' "$RC_FILE" 2>/dev/null; then
+    printf '\n%s\n' "$PATH_LINE" >> "$RC_FILE"
+    ADDED_TO+=("$RC_FILE")
+  fi
+done
+
+if [ ${#ADDED_TO[@]} -gt 0 ]; then
+  success "Added forge to PATH in: ${ADDED_TO[*]}"
+  printf '\n%sActivate now:%s\n' "$BOLD" "$RESET"
+  printf '  source ~/.zshrc   (or open a new terminal)\n'
+else
+  info "PATH already configured (forge is ready)"
+fi
+
+# ---------------------------------------------------------------------------
+# Summary
+# ---------------------------------------------------------------------------
+printf '\n%sCC-Forge installed. Next steps:%s\n' "$BOLD" "$RESET"
+printf '  1. source ~/.zshrc            (activate forge in this terminal)\n'
+printf '  2. cd your-project\n'
+printf '  3. forge init                 (initialize project)\n'
+printf '  4. open Claude Code → /forge--recon\n\n'

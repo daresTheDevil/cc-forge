@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BuildSignal",
+  "description": "JSON Schema for the CC-Forge build loop signal contract. Claude emits this after completing each task. The build.sh loop controller reads it and decides whether to continue.",
+  "type": "object",
+  "required": ["status", "task_id", "completed_tasks", "tests_passed", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["next", "complete", "blocked", "failed"],
+      "description": "next=proceed to next task; complete=all tasks done; blocked=human input required; failed=tests did not pass or unrecoverable error"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "ID of the task just attempted (e.g., 'T003')"
+    },
+    "completed_tasks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "All task IDs successfully completed so far in this build run"
+    },
+    "next_task": {
+      "type": ["string", "null"],
+      "description": "ID of the next task to execute. Null when status is 'complete' or 'blocked'."
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "ID of the blocked task"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why human input is required before this task can proceed"
+          }
+        }
+      },
+      "description": "Tasks that cannot proceed without human input"
+    },
+    "tests_passed": {
+      "type": "boolean",
+      "description": "Whether all tests pass after completing this task. Build halts if false."
+    },
+    "commit_hash": {
+      "type": ["string", "null"],
+      "description": "Short git commit hash of the implementation commit. Null if task did not produce a commit."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 300,
+      "description": "One sentence summary of what this task accomplished (or why it failed/blocked)"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# forge — CC-Forge project CLI
+# Installed via: pnpm add -g forge-cc
+#
+# Usage:
+#   forge init [workspace-id]   Initialize CC-Forge in the current project
+#   forge init --force          Re-initialize, overwriting existing files
+#   forge update                Update global CC-Forge install
+#   forge version               Show installed version
+#   forge help                  Show help
+
+set -euo pipefail
+
+# ---------------------------------------------------------------------------
+# Locate install.sh — npm package location takes priority over deployed copy,
+# ensuring the globally-installed package version is always used.
+# ---------------------------------------------------------------------------
+PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -f "${PACKAGE_DIR}/install.sh" ]; then
+  FORGE_INSTALL="${PACKAGE_DIR}/install.sh"
+elif [ -f "${HOME}/.claude/forge/install.sh" ]; then
+  FORGE_INSTALL="${HOME}/.claude/forge/install.sh"
+else
+  printf '[CC-Forge] ❌ install.sh not found.\n' >&2
+  printf 'Run: pnpm dlx cc-forge\n' >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Subcommand routing
+# ---------------------------------------------------------------------------
+SUBCMD="${1:-help}"
+shift || true
+
+case "$SUBCMD" in
+  init)
+    exec "$FORGE_INSTALL" --project "$@"
+    ;;
+  update)
+    printf 'Fetching latest CC-Forge...\n'
+    if command -v pnpm >/dev/null 2>&1; then
+      exec pnpm dlx cc-forge@latest --force
+    elif command -v npx >/dev/null 2>&1; then
+      exec npx cc-forge@latest --force
+    else
+      printf 'Error: pnpm or npx required. Install pnpm: https://pnpm.io\n' >&2
+      exit 1
+    fi
+    ;;
+  version|--version|-v)
+    TOML="${PACKAGE_DIR}/forge.toml"
+    if [ -f "$TOML" ]; then
+      grep '^version' "$TOML" | head -1
+    else
+      printf 'CC-Forge 0.1.0\n'
+    fi
+    ;;
+  help|--help|-h|'')
+    printf 'CC-Forge CLI\n\n'
+    printf 'Usage: forge <command> [options]\n\n'
+    printf 'Commands:\n'
+    printf '  init [workspace-id]   Initialize CC-Forge in the current project\n'
+    printf '  init --force          Re-initialize, overwriting existing files\n'
+    printf '  update                Update to the latest CC-Forge version\n'
+    printf '  version               Show installed version\n'
+    printf '  help                  Show this help\n\n'
+    printf 'Examples:\n'
+    printf '  forge init\n'
+    printf '  forge init applications\n'
+    printf '  forge init --force\n\n'
+    printf 'First time? Run the global installer:\n'
+    printf '  pnpm dlx cc-forge\n\n'
+    printf 'After project init, open Claude Code and run /forge--recon\n'
+    ;;
+  *)
+    printf 'Unknown command: %s\n' "$SUBCMD" >&2
+    printf 'Run: forge help\n' >&2
+    exit 1
+    ;;
+esac

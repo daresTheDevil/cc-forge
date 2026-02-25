@@ -1,0 +1,31 @@
+{
+  "name": "cc-forge",
+  "version": "0.1.0",
+  "description": "CC-Forge: Claude Code coherence engine — global installer and project init CLI",
+  "license": "MIT",
+  "bin": {
+    "cc-forge": "bin/cc-forge",
+    "forge": "bin/forge"
+  },
+  "files": [
+    "bin/",
+    "commands/",
+    "agents/",
+    "agent_docs/",
+    "hooks/",
+    "loops/",
+    "skills/",
+    "templates/",
+    "install.sh"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai-engineering",
+    "forge",
+    "developer-tools"
+  ]
+}

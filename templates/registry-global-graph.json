@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "last_updated": null,
+  "description": "Global coherence registry — cross-project entity relationships. Populated by /recon and /discuss commands.",
+  "entities": [],
+  "relationships": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": "1.0",
+  "last_updated": null,
+  "description": "Project-level coherence registry. Populated by /recon and updated by BUILD mode. Used by forge-loop.sh to scope improvement targets.",
+  "entities": [],
+  "relationships": []
+}

@@ -1,0 +1,301 @@
+# ~/.claude/forge/workspaces/data/workspace.toml
+# CC-Forge Workspace Configuration — Data & Integrations
+#
+# Covers: SQL Server, Oracle, ETL pipelines, reporting services,
+#         data governance, migration discipline, query standards.
+#
+# Inheritance: forge.toml (global) → this file → project.toml (local)
+# Projects in this workspace can extend these settings but not weaken them.
+# ---------------------------------------------------------------------------
+
+[workspace]
+id          = "data"
+name        = "Data & Integrations"
+description = "SQL Server, Oracle, ETL, reporting services"
+version     = "1.0"
+
+[workspace.ownership]
+team    = "data"
+lead    = "data-lead@yourorg.com"
+oncall  = "data-oncall@yourorg.com"
+
+# ---------------------------------------------------------------------------
+# PROJECTS
+# ---------------------------------------------------------------------------
+
+[[projects]]
+id   = "sqlserver-core"
+name = "SQL Server Core Schemas"
+repo = "git@github.com:yourorg/sqlserver-core"
+
+[[projects]]
+id   = "oracle-legacy"
+name = "Oracle Legacy Database"
+repo = "git@github.com:yourorg/oracle-legacy"
+
+[[projects]]
+id   = "etl-platform"
+name = "ETL Pipeline Platform"
+repo = "git@github.com:yourorg/etl-platform"
+
+[[projects]]
+id   = "reporting"
+name = "Reporting Services"
+repo = "git@github.com:yourorg/reporting"
+
+# ---------------------------------------------------------------------------
+# ENVIRONMENTS
+# Data workspace has its own environment definitions — databases are shared
+# across application projects, so environment definitions matter here.
+# ---------------------------------------------------------------------------
+
+[[environments]]
+id        = "production"
+protected = true
+notify_on = ["migration", "drift", "critical-finding"]
+
+  [environments.production.sqlserver]
+  instance  = "sqlserver-prod.yourorg.internal"
+  port      = 1433
+
+  [environments.production.oracle]
+  host      = "oracle-prod.yourorg.internal"
+  port      = 1521
+  service   = "PROD"
+
+[[environments]]
+id        = "staging"
+protected = false
+notify_on = ["drift", "critical-finding"]
+
+  [environments.staging.sqlserver]
+  instance  = "sqlserver-staging.yourorg.internal"
+  port      = 1433
+
+  [environments.staging.oracle]
+  host      = "oracle-staging.yourorg.internal"
+  port      = 1521
+  service   = "STAGING"
+
+# ---------------------------------------------------------------------------
+# DOMAIN: DATABASE — SQL SERVER
+# ---------------------------------------------------------------------------
+
+[domains.sqlserver]
+enabled         = true
+version_floor   = "2019"           # minimum supported version
+driver          = "ODBC Driver 18 for SQL Server"
+
+  [domains.sqlserver.migrations]
+  tool                      = "flyway"
+  versioning_strategy       = "versioned"     # versioned | repeatable
+  require_rollback_script   = true            # every V migration needs a corresponding U
+  require_transaction_wrap  = true            # DDL changes must be transactional where possible
+  destructive_change_policy = "block"         # block in CI — break-glass for emergencies
+  naming_pattern            = "^V[0-9]+__[A-Za-z0-9_]+\\.sql$"
+
+  [domains.sqlserver.standards]
+  # Schema / object naming conventions — drift detection flags deviations
+  table_case           = "PascalCase"
+  column_case          = "PascalCase"
+  index_prefix         = "IX_"
+  unique_index_prefix  = "UX_"
+  fk_prefix            = "FK_"
+  pk_prefix            = "PK_"
+  sp_prefix            = "usp_"
+  fn_prefix            = "ufn_"
+  view_prefix          = "v"
+  trigger_prefix       = "tr_"
+
+  [domains.sqlserver.query_standards]
+  require_query_plan_on_new_queries     = true
+  query_plan_row_threshold              = 10000    # explain plan required if table > 10k rows
+  disallow_select_star_in_stored_procs  = true
+  disallow_cursor_without_justification = true     # cursors must be flagged in spec
+  require_nolock_justification          = true     # NOLOCK hints must be documented
+  max_query_complexity_score            = 15       # cyclomatic complexity for SQL
+
+  [domains.sqlserver.security]
+  disallow_dynamic_sql_without_parameterization = true   # SQL injection prevention
+  require_schema_per_team                       = true   # no dbo-only schemas in production
+  disallow_sa_account_usage                     = true
+  require_column_encryption_for_pii             = true
+
+# ---------------------------------------------------------------------------
+# DOMAIN: DATABASE — ORACLE
+# ---------------------------------------------------------------------------
+
+[domains.oracle]
+enabled          = true
+version_floor    = "19c"
+character_set    = "AL32UTF8"
+
+  [domains.oracle.migrations]
+  tool                      = "flyway"           # same tooling as SQL Server for consistency
+  require_rollback_script   = true
+  require_transaction_wrap  = false              # Oracle DDL auto-commits — document this
+  destructive_change_policy = "block"
+  naming_pattern            = "^V[0-9]+__[A-Za-z0-9_]+\\.sql$"
+
+  [domains.oracle.standards]
+  # Oracle-specific naming — tends toward UPPER_SNAKE for legacy reasons
+  table_case          = "UPPER_SNAKE"
+  column_case         = "UPPER_SNAKE"
+  index_prefix        = "IDX_"
+  fk_prefix           = "FK_"
+  pk_prefix           = "PK_"
+  sequence_suffix     = "_SEQ"
+  trigger_prefix      = "TRG_"
+  package_prefix      = "PKG_"
+
+  [domains.oracle.query_standards]
+  require_query_plan_on_new_queries    = true
+  query_plan_row_threshold             = 10000
+  disallow_select_star_in_packages     = true
+  require_bind_variables               = true      # no string concatenation in SQL
+  disallow_implicit_conversions        = true
+
+  [domains.oracle.security]
+  disallow_dynamic_sql_without_bind_vars = true
+  require_schema_separation              = true
+  disallow_sys_sysdba_app_connections    = true
+  require_column_encryption_for_pii      = true
+  disallow_public_synonyms               = true    # public synonyms are a security risk
+
+# ---------------------------------------------------------------------------
+# DOMAIN: MIGRATIONS (CROSS-ENGINE)
+# Standards that apply regardless of database engine.
+# ---------------------------------------------------------------------------
+
+[domains.migrations]
+enabled = true
+
+  [domains.migrations.workflow]
+  # Migration must go through full workflow — no skipping spec/plan for schema changes
+  require_spec_for_schema_change      = true
+  require_dba_review_for_destructive  = true
+  require_data_migration_plan         = true     # if schema change affects existing data
+  require_index_impact_analysis       = true     # adding/removing indexes needs justification
+  require_estimated_duration          = true     # long-running migrations need time estimate
+  long_running_threshold_minutes      = 5        # migrations over 5 min need online strategy
+
+  [domains.migrations.testing]
+  require_migration_test_in_staging   = true     # must succeed in staging before prod
+  require_rollback_test               = true     # rollback script must be tested too
+  require_row_count_validation        = true     # validate row counts before/after destructive
+
+# ---------------------------------------------------------------------------
+# DOMAIN: DATA GOVERNANCE
+# ---------------------------------------------------------------------------
+
+[domains.data_governance]
+enabled = true
+
+  [domains.data_governance.pii]
+  # PII handling standards — feeds into coherence registry entity tagging
+  require_pii_column_tagging          = true    # columns must be tagged in spec
+  require_encryption_at_rest          = true
+  require_audit_log_on_pii_access     = true
+  data_retention_policy_required      = true
+  anonymization_required_for_non_prod = true    # no real PII in staging/dev
+
+  [domains.data_governance.classification]
+  # Data classification levels — used in blast radius scoring
+  levels = ["public", "internal", "confidential", "restricted"]
+  default_level = "internal"
+  # Changes to restricted data entities get blast_radius_multiplier applied
+  restricted_blast_radius_multiplier = 2.0
+
+  [domains.data_governance.lineage]
+  # Data lineage tracking in coherence registry
+  enabled                  = true
+  track_etl_dependencies   = true
+  track_reporting_sources  = true
+
+# ---------------------------------------------------------------------------
+# DOMAIN: ETL
+# ---------------------------------------------------------------------------
+
+[domains.etl]
+enabled = true
+
+  [domains.etl.standards]
+  require_idempotent_pipelines        = true    # pipelines must be safe to re-run
+  require_error_handling_and_retry    = true
+  require_dead_letter_queue           = true
+  require_data_quality_checks         = true
+  require_row_count_reconciliation    = true    # source vs. destination counts must match
+  max_pipeline_runtime_minutes        = 60      # alert if pipeline exceeds this
+
+  [domains.etl.testing]
+  require_sample_data_tests           = true
+  require_boundary_condition_tests    = true    # empty input, nulls, max values
+  disallow_production_data_in_tests   = true    # always use anonymized data
+
+# ---------------------------------------------------------------------------
+# COHERENCE REGISTRY
+# Data workspace tracks cross-project data lineage and schema dependencies.
+# ---------------------------------------------------------------------------
+
+[coherence_registry]
+graph_path = "~/.claude/forge/workspaces/data/registry/graph.json"
+auto_merge = true
+
+  [coherence_registry.entities]
+  schemas           = true
+  tables            = true
+  stored_procedures = true
+  views             = true
+  sequences         = true
+  etl_pipelines     = true
+  reports           = true
+  data_lineage      = true      # tracks which reports depend on which tables
+  pii_columns       = true      # tagged columns — names only
+
+# ---------------------------------------------------------------------------
+# FEATURES
+# Data workspace is conservative — changes here have the highest blast radius.
+# ---------------------------------------------------------------------------
+
+[features.drift_detection]
+# Schema drift is critical — check frequently
+run_on        = ["pre-build", "pre-deploy", "post-deploy", "scheduled"]
+schedule_cron = "0 */4 * * *"    # every 4 hours — databases drift silently
+
+[features.blast_radius_analysis]
+scope = "global"                  # schema changes can affect every application
+
+[features.forge_loop]
+# Data changes are slow and high-risk — improvement cycles are deliberate
+auto_trigger_after_builds = 15
+trigger                   = "manual"   # override global auto — data workspace is manual
+
+# ---------------------------------------------------------------------------
+# GRADING
+# Data workspace uses the strictest thresholds — schema changes cascade everywhere.
+# ---------------------------------------------------------------------------
+
+[grading.blast_radius]
+low      = { max_edges = 2  }
+medium   = { max_edges = 8  }
+high     = { max_edges = 20 }
+critical = { min_edges = 21 }
+
+[grading.security]
+fail_on_severity = "medium"       # stricter than global — data is sensitive
+
+[grading.drift]
+auto_block_on_critical = true
+# Also block on high severity for data workspace
+auto_block_on_high     = true
+
+# ---------------------------------------------------------------------------
+# NOTIFICATIONS
+# Data workspace is loudest — schema drift or critical findings page immediately.
+# ---------------------------------------------------------------------------
+
+[notifications]
+critical_drift   = { channel = "slack", webhook_env = "FORGE_DATA_SLACK_WEBHOOK" }
+high_drift       = { channel = "slack", webhook_env = "FORGE_DATA_SLACK_WEBHOOK" }
+session_summary  = { channel = "slack", webhook_env = "FORGE_DATA_SLACK_WEBHOOK" }
+migration_deploy = { channel = "slack", webhook_env = "FORGE_DATA_SLACK_WEBHOOK" }

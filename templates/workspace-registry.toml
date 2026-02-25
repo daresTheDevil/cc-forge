@@ -1,0 +1,71 @@
+# ~/.claude/forge/workspace-registry.toml
+# Maps projects (by git remote or path) to their workspace.
+# This is the source of truth for workspace discovery.
+# CC-Forge reads this at session start to resolve the inheritance chain.
+
+[registry]
+version      = "1.0"
+last_updated = "2025-02-23"
+
+# ---------------------------------------------------------------------------
+# MAPPINGS
+# Evaluated top-to-bottom. First match wins.
+# match_type: git_remote | path_prefix | explicit
+# ---------------------------------------------------------------------------
+
+# Platform / Infrastructure projects
+[[mappings]]
+workspace_id = "platform"
+match_type   = "git_remote"
+patterns     = [
+  "git@github.com:yourorg/k8s-*",
+  "git@github.com:yourorg/infra-*",
+  "git@github.com:yourorg/ci-*"
+]
+
+# Application layer projects
+[[mappings]]
+workspace_id = "applications"
+match_type   = "git_remote"
+patterns     = [
+  "git@github.com:yourorg/app-*",
+  "git@github.com:yourorg/api-*",
+  "git@github.com:yourorg/frontend-*",
+  "git@github.com:yourorg/legacy-*"
+]
+
+# Data / integration projects
+[[mappings]]
+workspace_id = "data"
+match_type   = "git_remote"
+patterns     = [
+  "git@github.com:yourorg/data-*",
+  "git@github.com:yourorg/etl-*",
+  "git@github.com:yourorg/reporting-*"
+]
+
+# Local path fallbacks (useful for unregistered or local-only repos)
+[[mappings]]
+workspace_id = "applications"
+match_type   = "path_prefix"
+patterns     = [
+  "~/projects/apps/",
+  "~/projects/frontend/"
+]
+
+[[mappings]]
+workspace_id = "platform"
+match_type   = "path_prefix"
+patterns     = [
+  "~/projects/infra/",
+  "~/projects/k8s/"
+]
+
+# ---------------------------------------------------------------------------
+# FALLBACK
+# Used when no pattern matches. Warns developer to register the project.
+# ---------------------------------------------------------------------------
+
+[registry.fallback]
+workspace_id     = "applications"
+warn_on_fallback = true

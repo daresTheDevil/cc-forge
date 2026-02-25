@@ -1,0 +1,285 @@
+# ~/.claude/forge/workspaces/platform/workspace.toml
+# CC-Forge Workspace Configuration — Platform Infrastructure
+#
+# Covers: k8s cluster management, CI/CD pipelines, shared services,
+#         database server infrastructure, networking, secrets management.
+#
+# Inheritance: forge.toml (global) → this file → project.toml (local)
+# Projects in this workspace can extend these settings but not weaken them.
+# ---------------------------------------------------------------------------
+
+[workspace]
+id          = "platform"
+name        = "Platform Infrastructure"
+description = "k8s cluster, databases, CI/CD, shared services"
+version     = "1.0"
+
+# Ownership — escalation path for workspace-level drift or critical findings
+[workspace.ownership]
+team    = "platform"
+lead    = "platform-lead@yourorg.com"
+oncall  = "platform-oncall@yourorg.com"
+
+# ---------------------------------------------------------------------------
+# PROJECTS
+# Declares which projects belong to this workspace and any project-specific
+# overrides at the workspace level (before project.toml is applied).
+# Full project config lives in each project's .claude/forge/project.toml.
+# ---------------------------------------------------------------------------
+
+[[projects]]
+id   = "k8s-cluster"
+name = "Kubernetes Cluster Configuration"
+repo = "git@github.com:yourorg/k8s-cluster"
+
+[[projects]]
+id   = "ci-platform"
+name = "CI/CD Platform"
+repo = "git@github.com:yourorg/ci-platform"
+
+[[projects]]
+id   = "infra-secrets"
+name = "Secrets & Vault Management"
+repo = "git@github.com:yourorg/infra-secrets"
+
+[[projects]]
+id   = "infra-networking"
+name = "Network Infrastructure"
+repo = "git@github.com:yourorg/infra-networking"
+
+# ---------------------------------------------------------------------------
+# ENVIRONMENT INVENTORY
+# Shared environment definitions available to all projects in this workspace.
+# Projects reference these by id rather than duplicating environment config.
+# ---------------------------------------------------------------------------
+
+[[environments]]
+id         = "production"
+name       = "Production"
+protected  = true                  # extra gates required before any change
+cluster    = "prod-cluster-01"
+region     = "us-east-1"
+notify_on  = ["deploy", "drift", "critical-finding"]
+
+[[environments]]
+id         = "staging"
+name       = "Staging"
+protected  = false
+cluster    = "staging-cluster-01"
+region     = "us-east-1"
+notify_on  = ["drift", "critical-finding"]
+
+[[environments]]
+id         = "development"
+name       = "Development"
+protected  = false
+cluster    = "dev-cluster-01"
+region     = "us-east-1"
+notify_on  = []
+
+# ---------------------------------------------------------------------------
+# DOMAIN: KUBERNETES
+# Workspace-level k8s standards applied to all platform projects.
+# ---------------------------------------------------------------------------
+
+[domains.k8s]
+enabled           = true
+version_floor     = "1.28"         # minimum k8s version — drift detection flags below this
+helm_version_floor = "3.12"
+
+  [domains.k8s.clusters]
+  # Cluster definitions — referenced by projects and environments
+  [[domains.k8s.clusters.entries]]
+  id         = "prod-cluster-01"
+  context    = "prod-k8s-context"
+  protected  = true
+
+  [[domains.k8s.clusters.entries]]
+  id         = "staging-cluster-01"
+  context    = "staging-k8s-context"
+  protected  = false
+
+  [[domains.k8s.clusters.entries]]
+  id         = "dev-cluster-01"
+  context    = "dev-k8s-context"
+  protected  = false
+
+  [domains.k8s.standards]
+  # These apply to all projects in this workspace — project.toml can add more
+  require_namespace_per_project     = true
+  require_network_policies          = true
+  require_resource_quotas           = true
+  require_limit_ranges              = true
+  require_pod_disruption_budget     = true   # all production workloads
+  require_horizontal_pod_autoscaler = true   # all production workloads
+  max_image_age_days                = 90     # flag images older than this in drift detection
+
+  [domains.k8s.rbac]
+  # Workspace-wide RBAC governance
+  require_least_privilege          = true
+  disallow_cluster_admin_binding   = true    # no clusterrolebinding to cluster-admin
+  require_rbac_review_on_change    = true    # blast radius check on any RBAC change
+  service_account_per_workload     = true    # no default service account usage
+
+  [domains.k8s.security]
+  pod_security_standard            = "restricted"    # baseline for this workspace
+  require_image_signing            = true
+  allowed_registries               = [
+    "gcr.io/yourorg",
+    "ghcr.io/yourorg",
+  ]
+  disallow_latest_tag              = true
+  require_non_root                 = true
+  require_read_only_root_fs        = true
+
+# ---------------------------------------------------------------------------
+# DOMAIN: CI/CD
+# Workspace-level CI/CD standards.
+# ---------------------------------------------------------------------------
+
+[domains.ci]
+enabled   = true
+platform  = "github-actions"
+
+  [domains.ci.standards]
+  require_branch_protection         = true
+  require_pr_review_count           = 1       # minimum reviewers before merge
+  require_status_checks             = true
+  require_signed_commits            = false   # advisory for now
+  require_secret_scanning           = true    # must run on every PR
+  require_dependency_audit          = true
+  require_sast                      = true
+  disallow_force_push_to_main       = true
+  disallow_direct_push_to_protected = true
+
+  [domains.ci.gates]
+  # Ordered pipeline gates — all must pass before deploy
+  gates = [
+    "secret-scan",
+    "dependency-audit",
+    "sast",
+    "unit-tests",
+    "integration-tests",
+    "drift-detection",
+    "blast-radius-check",
+    "docker-build",
+    "image-scan",
+    "helm-lint",
+    "helm-diff",         # show what will change before applying
+  ]
+
+  [domains.ci.environments]
+  # Deploy gate requirements per environment
+  [domains.ci.environments.production]
+  require_manual_approval  = true
+  approvers                = ["platform-lead@yourorg.com"]
+  require_change_ticket    = true
+  deploy_window            = "weekdays 09:00-16:00 America/New_York"   # no weekend deploys to prod
+
+  [domains.ci.environments.staging]
+  require_manual_approval  = false
+  auto_deploy_on_merge     = true
+
+  [domains.ci.environments.development]
+  require_manual_approval  = false
+  auto_deploy_on_merge     = true
+
+# ---------------------------------------------------------------------------
+# DOMAIN: SECRETS MANAGEMENT
+# Workspace-level secrets governance — applies to all projects.
+# ---------------------------------------------------------------------------
+
+[domains.secrets]
+enabled   = true
+provider  = "vault"               # vault | aws-secrets-manager | azure-keyvault | k8s-secrets
+
+  [domains.secrets.standards]
+  disallow_plaintext_secrets       = true    # hard block — caught in secret scanning
+  require_secret_rotation_days     = 90
+  require_least_privilege_access   = true
+  disallow_shared_service_accounts = true    # each service gets its own identity
+  require_audit_logging            = true
+
+  [domains.secrets.patterns]
+  # Secret naming conventions — drift detection flags deviations
+  env_var_pattern   = "^[A-Z][A-Z0-9_]+$"
+  vault_path_pattern = "^(prod|staging|dev)/[a-z-]+/[a-z-]+$"
+
+# ---------------------------------------------------------------------------
+# DOMAIN: NETWORKING
+# ---------------------------------------------------------------------------
+
+[domains.networking]
+enabled = true
+
+  [domains.networking.standards]
+  require_tls_everywhere           = true
+  min_tls_version                  = "1.2"
+  preferred_tls_version            = "1.3"
+  require_network_policies         = true    # no open namespace traffic
+  disallow_nodeport_in_production  = true
+  require_ingress_class            = true
+  allowed_ingress_classes          = ["nginx", "traefik"]
+
+# ---------------------------------------------------------------------------
+# COHERENCE REGISTRY
+# Workspace-level graph — tracks relationships across projects in this workspace.
+# Merged with project-level graphs for full picture.
+# ---------------------------------------------------------------------------
+
+[coherence_registry]
+graph_path   = "~/.claude/forge/workspaces/platform/registry/graph.json"
+auto_merge   = true                # merge project graphs up to workspace graph on build
+
+  [coherence_registry.entities]
+  # Entity types tracked at workspace scope (cross-project)
+  clusters    = true
+  namespaces  = true
+  shared_services = true
+  ingress_routes  = true
+  secrets_refs    = true           # names only, never values
+  service_accounts = true
+  ci_pipelines    = true
+
+# ---------------------------------------------------------------------------
+# FEATURES
+# Workspace-level feature overrides — inherits global defaults, tunes for platform context.
+# ---------------------------------------------------------------------------
+
+[features.drift_detection]
+# Platform workspace checks more aggressively — infrastructure drift is high risk
+run_on         = ["pre-build", "pre-deploy", "post-deploy", "scheduled"]
+schedule_cron  = "0 6 * * *"       # daily at 6am — catch overnight drift
+
+[features.blast_radius_analysis]
+# Infrastructure changes can cascade broadly — use global scope here
+scope = "global"
+
+[features.forge_loop]
+# Platform changes are slower moving — less frequent improvement cycles
+auto_trigger_after_builds = 10
+
+# ---------------------------------------------------------------------------
+# GRADING OVERRIDES
+# Platform workspace applies stricter thresholds than global defaults.
+# ---------------------------------------------------------------------------
+
+[grading.blast_radius]
+# Infrastructure blast radius tighter — fewer edges = higher severity
+low      = { max_edges = 3  }
+medium   = { max_edges = 10 }
+high     = { max_edges = 25 }
+critical = { min_edges = 26 }
+
+[grading.security]
+# Platform workspace fails on medium and above (stricter than global "high")
+fail_on_severity = "medium"
+
+# ---------------------------------------------------------------------------
+# NOTIFICATIONS
+# ---------------------------------------------------------------------------
+
+[notifications]
+critical_drift   = { channel = "slack", webhook_env = "FORGE_PLATFORM_SLACK_WEBHOOK" }
+session_summary  = { channel = "slack", webhook_env = "FORGE_PLATFORM_SLACK_WEBHOOK" }
+deploy_complete  = { channel = "slack", webhook_env = "FORGE_PLATFORM_SLACK_WEBHOOK" }

@@ -1,0 +1,405 @@
+# .claude/forge/project.toml
+# CC-Forge Project Configuration
+#
+# This file lives at .claude/forge/project.toml in every managed project.
+# It describes THIS repo to CC-Forge: what it is, what stack it uses, and
+# how it should behave during sessions.
+#
+# INHERITANCE: forge.toml (machine-wide) → workspace.toml (domain) → this file
+# Local rules can only ADD constraints, never remove them.
+# ---------------------------------------------------------------------------
+
+[project]
+# A short, unique identifier for this project. Lowercase, hyphens OK. No spaces.
+# This ID shows up in blast-radius reports, drift alerts, and Slack notifications.
+# Example: "ace-dashboard", "auth-api", "legacy-billing", "data-etl"
+id = "your-project-id"
+
+# Human-readable name shown in review reports and session summaries.
+# Example: "ACE Dashboard", "Core Auth API"
+name = "Your Project Name"
+
+# One sentence: what does this project do? Shown in the coherence registry.
+# Example: "Customer-facing reporting dashboard for ACE platform users."
+description = "What this project does and why it exists"
+
+# Which workspace this repo belongs to.
+# Must match one of the workspace IDs defined in ~/.claude/forge/forge.toml
+#
+#   applications  → user-facing services: APIs, Nuxt frontends, legacy PHP
+#   platform      → infrastructure: k8s, CI/CD, shared services, monitoring
+#   data          → ETL pipelines, Oracle/SQL Server reporting, integrations
+#
+# Workspace membership determines which domain standards you inherit.
+# If you're building something users interact with → applications.
+# If you're building something that runs the cluster → platform.
+# If you're moving or transforming data → data.
+workspace = "applications"
+
+
+# ---------------------------------------------------------------------------
+# OWNERSHIP
+# Who is responsible for this project? Used in blast-radius reports and alerts.
+# ---------------------------------------------------------------------------
+
+[project.ownership]
+# Your team name — just a label, used in reports
+team    = "platform"
+
+# Point of contact for this project (your email)
+lead    = "engineer@yourorg.com"
+
+# Who gets paged on critical drift findings (can be same as lead)
+oncall  = "oncall@yourorg.com"
+
+# The git remote URL — used to link registry entities back to source
+repo    = "git@github.com:yourorg/your-project"
+
+
+# ---------------------------------------------------------------------------
+# STACK
+# Tell CC-Forge what technologies live in this repo.
+# This determines which advisory skills load automatically and what
+# the coherence registry tracks.
+# ---------------------------------------------------------------------------
+
+[stack]
+# What application framework(s) run here?
+# Options: nuxt, php-legacy, node, python, java, dotnet, other
+# Use an array if the repo has multiple (e.g. a Python API + legacy PHP).
+# Example: ["nuxt"] or ["node", "php-legacy"]
+application = ["nuxt", "php-legacy"]
+
+# How does this service expose itself to other systems?
+# Options: rest, graphql, grpc, websocket
+# Example: ["rest"] for a standard HTTP API
+api_style = ["rest"]
+
+# What databases does this project READ from or WRITE to directly?
+# Options: sqlserver, oracle, postgres, mysql, redis, mongo, other
+# Only list databases this project itself connects to — not what other services use.
+# Example: ["sqlserver"] or ["oracle", "redis"]
+databases = ["sqlserver", "oracle"]
+
+# Where does this project run?
+# Options: k8s, docker-compose, bare-metal, lambda, other
+runtime = ["k8s"]
+
+# What CI system runs the pipelines for this project?
+# Options: github-actions, gitlab-ci, jenkins, circleci, other
+ci = ["github-actions"]
+
+# What programming languages are present in the repo?
+# Used to load the right linters, formatters, and security scanners.
+# Options: typescript, javascript, python, php, java, csharp, go, rust, other
+languages = ["typescript", "python", "php"]
+
+
+# ---------------------------------------------------------------------------
+# WORKFLOW OVERRIDES
+# Fine-tune mode behavior for this project.
+# You can tighten constraints here. You cannot disable mandatory gates.
+# ---------------------------------------------------------------------------
+
+[workflow]
+# Force sessions to start in a specific mode if the context is usually obvious.
+# Uncomment and change if needed. Default is "discuss" (from global config).
+# default_mode = "build"
+
+  [workflow.spec]
+  # Require a dedicated security section in every spec document.
+  # Good for any project handling auth, payments, or PII. Default: true.
+  require_security_section   = true
+
+  # Require a data-flow diagram for data-heavy projects.
+  # Set true if this project moves or transforms sensitive data.
+  require_data_flow_diagram  = false
+
+  [workflow.build]
+  # Enforce branch naming convention before build mode starts.
+  # Pattern: feat/my-feature, fix/the-bug, chore/upgrade-deps
+  require_branch_convention  = true
+  branch_pattern             = "^(feat|fix|chore|refactor|sec)\/[a-z0-9-]+$"
+
+  # Enforce conventional commit format on every commit.
+  # Format: type(scope): description  — e.g. feat(auth): add JWT refresh endpoint
+  require_conventional_commits = true
+
+  [workflow.improve]
+  # How often the Forge Loop runs (every N build cycles). Global default is 5.
+  # Lower = more frequent improvement passes. Good for active development.
+  auto_trigger_after_builds  = 3
+
+  # Max iterations per Forge Loop run. Global default is 10.
+  # Lower = tighter, faster loops. Good for scoped improvement sessions.
+  max_iterations             = 5
+
+
+# ---------------------------------------------------------------------------
+# DOMAINS
+# Per-domain configuration for this project.
+# Each section extends the workspace-level defaults — you can tighten, not loosen.
+# Only fill in the domains that actually apply to this project.
+# ---------------------------------------------------------------------------
+
+[domains.api]
+enabled   = true
+
+# openapi-first: spec comes before code (recommended)
+# code-first: generate spec from code
+style     = "openapi-first"
+
+# Where the OpenAPI spec lives relative to the project root.
+# /recon and /drift-check compare the spec against actual routes.
+spec_path = "docs/api/openapi.yaml"
+
+# How API versions are communicated to clients.
+# header: clients send "API-Version: 2024-01" header (recommended)
+# url-path: /v1/endpoint, /v2/endpoint
+# query-param: /endpoint?version=2024-01
+versioning = "header"
+
+  [domains.api.standards]
+  # All routes must require authentication. No public routes without explicit exception.
+  require_auth_on_all_routes = true
+
+  # Every route must have rate limiting configured.
+  require_rate_limiting      = true
+
+  # Incoming request bodies must be validated against the OpenAPI schema.
+  require_request_validation = true
+
+  # All error responses must match the shared error schema.
+  # Ensures clients can handle errors consistently.
+  require_error_schema       = true
+
+  # p99 response time target in milliseconds.
+  # Blast radius analysis flags changes that risk breaching this.
+  max_response_time_ms       = 500
+
+
+[domains.database]
+enabled  = true
+
+# Which database engines does this project use directly?
+# Drives which migration conventions and safety checks apply.
+engines  = ["sqlserver", "oracle"]
+
+  [domains.database.migrations]
+  # Migration tool. flyway is the default for SQL Server + Oracle.
+  tool                     = "flyway"
+
+  # Every migration file (V{n}__Name.sql) MUST have a rollback file (U{n}__Name.sql).
+  # The pre-commit hook enforces this — commits without rollback scripts are blocked.
+  require_rollback_script  = true
+
+  # For queries on large tables, require an execution plan in a comment.
+  # Prevents accidental table scans making it to production.
+  require_query_plan       = true
+
+  # Tables with more than this many rows trigger the query plan requirement.
+  query_plan_row_threshold = 10000
+
+  # How to handle destructive changes (DROP TABLE, ALTER COLUMN, etc.)?
+  # block: pre-commit hook prevents the commit (use this for production projects)
+  # warn: flags the change but allows it
+  # allow: no restriction (never use in production)
+  destructive_change_policy = "block"
+
+  [domains.database.naming]
+  # Naming conventions enforced at spec/plan time. Change to match your actual schema.
+  table_case  = "PascalCase"    # e.g. CustomerOrders
+  column_case = "PascalCase"    # e.g. OrderDate
+  index_prefix = "IX_"          # e.g. IX_CustomerOrders_CustomerId
+  fk_prefix    = "FK_"          # e.g. FK_Orders_Customers
+  sp_prefix    = "usp_"         # e.g. usp_GetActiveOrders
+
+
+[domains.k8s]
+enabled         = true
+
+# Which cluster does this project run on?
+# Must match a cluster defined in the workspace or platform config.
+cluster         = "prod-cluster-01"
+
+# The Kubernetes namespace for this project's workloads.
+# Used by pre-deploy hook to validate secretKeyRef and configMapKeyRef references.
+namespace       = "your-project"
+
+# Where the Helm chart lives relative to the project root.
+helm_chart_path = "deploy/helm"
+
+  [domains.k8s.resources]
+  # All pods must declare CPU and memory requests AND limits.
+  # Pods without these get scheduled unpredictably under load.
+  require_requests_and_limits   = true
+
+  # All pods must have liveness and readiness probes.
+  # Without these, k8s can't tell when to restart or route traffic.
+  require_liveness_probe        = true
+  require_readiness_probe       = true
+
+  # Ensure at least N pods are always running during upgrades/node failures.
+  require_pod_disruption_budget = true
+
+  [domains.k8s.security]
+  # Kubernetes Pod Security Standard for this namespace.
+  # restricted: strictest — no root, no privilege escalation, read-only root filesystem
+  # baseline:   blocks known privilege escalation, allows some flexibility
+  # privileged: no restrictions (never for application workloads)
+  pod_security_standard         = "restricted"
+  require_non_root              = true
+  require_read_only_root_fs     = true
+  disallow_privilege_escalation = true
+
+
+[domains.frontend]
+# Only fill this in if the repo contains a Nuxt (or other) frontend.
+enabled   = true
+framework = "nuxt"
+ssr       = true   # Server-side rendering? true for Nuxt SSR, false for SPA
+
+  [domains.frontend.standards]
+  require_a11y_checks   = true   # Accessibility checks must pass in CI
+  require_lighthouse_ci = true   # Lighthouse must run on every deploy
+
+  # Lighthouse score floors. CI fails if scores drop below these.
+  lighthouse_thresholds = { performance = 85, accessibility = 95, best_practices = 90 }
+
+
+[domains.legacy]
+# Only fill this in if the repo contains legacy PHP code.
+# If you have no PHP, set enabled = false or remove this section.
+enabled      = true
+language     = "php"
+has_framework = false   # true if using Laravel/Symfony/etc., false for vanilla PHP
+
+# Legacy code gets a blast radius multiplier — changes here are treated as
+# higher risk because the code is harder to test and reason about.
+# 1.5 = 50% more cautious. Don't lower this.
+blast_radius_multiplier = 1.5
+
+  [domains.legacy.standards]
+  # Characterization tests capture current behavior before any refactor.
+  # Without these, you can't tell if your refactor changed something it shouldn't.
+  require_characterization_tests = true
+
+  # Refactoring is blocked until 60% of the legacy code path is covered.
+  # (Set in workspace.toml — override here only to raise the floor.)
+
+  # Flag functions longer than this in simplify passes.
+  max_function_length_lines      = 50
+
+  # All user input must be validated before use. No raw $_GET/$_POST.
+  require_input_validation       = true
+
+
+# ---------------------------------------------------------------------------
+# COHERENCE REGISTRY
+# Where project-graph.json lives and what entity types this project has.
+# /recon populates this. /blast reads it. Forge Loop scopes to it.
+# You rarely need to change this section.
+# ---------------------------------------------------------------------------
+
+[coherence_registry]
+local_graph = ".claude/forge/registry/project-graph.json"
+
+  [coherence_registry.entities]
+  # What kinds of things exist in this project?
+  # Set to false for any type that doesn't apply — this prevents /recon
+  # from looking for things that aren't there.
+  services      = true    # API services / microservices
+  db_schemas    = true    # database schemas / tables
+  k8s_resources = true    # deployments, services, configmaps, secrets
+  api_endpoints = true    # REST endpoints (parsed from OpenAPI spec if present)
+  ui_components = true    # Nuxt pages and components (set false if no frontend)
+  ci_pipelines  = true    # CI workflow files (.github/workflows/)
+  secrets       = true    # secret references (names only — never values)
+  dependencies  = true    # package.json, requirements.txt, composer.json
+
+  [coherence_registry.scan_paths]
+  # Where /recon looks when building the registry.
+  # Adjust these paths to match your actual project layout.
+  api_spec      = "docs/api/openapi.yaml"
+  k8s_manifests = "deploy/helm/templates/**/*.yaml"
+  migrations    = "db/migrations/**/*.sql"
+  ci_workflows  = ".github/workflows/**/*.yaml"
+  packages      = ["package.json", "requirements.txt", "composer.json"]
+
+
+# ---------------------------------------------------------------------------
+# SECURITY
+# Project-level additions to the global security baseline.
+# You can only add patterns here, not remove global ones.
+# ---------------------------------------------------------------------------
+
+[security]
+# Additional secret patterns to scan for beyond the global defaults.
+# Use regex. These are matched against staged file content in the pre-commit hook.
+# Add any patterns specific to your stack or organization.
+# Example: internal service keys, Oracle connection strings, etc.
+extra_secret_patterns = [
+  "ORACLE_.*_PASSWORD",
+  "SQLSERVER_.*_CONN",
+]
+
+  [security.sast]
+  enabled = true
+  # Static analysis tools available in your environment.
+  # semgrep: works on TypeScript, Python, PHP, and more.
+  # bandit: Python-specific security linter.
+  # Install both: pip install semgrep bandit
+  tools = ["semgrep", "bandit"]
+
+  [security.dependency_audit]
+  enabled          = true
+  fail_on_severity = "high"     # Fails build if any high-severity vuln found
+  auto_update_minor = false     # Don't automatically update dependencies
+
+  [security.secrets]
+  scanning_enabled  = true
+  block_on_detection = true     # Hard block on any detected secret — no override
+  scan_git_history  = true      # Check git history, not just current state
+
+
+# ---------------------------------------------------------------------------
+# BREAK-GLASS OVERRIDES
+# When a mandatory rule genuinely can't apply (P0 incident, emergency fix),
+# document it here with a justification and expiry date.
+# These are logged and audited. Expired overrides are flagged by drift-check.
+#
+# To use: uncomment, fill in the details, and commit.
+# After the incident/deadline passes, remove the entry and commit again.
+# ---------------------------------------------------------------------------
+
+# [[break_glass]]
+# rule          = "require_rollback_script"   # The rule being overridden
+# domain        = "database"                  # Which domain the rule belongs to
+# justification = "Emergency hotfix for P0 incident #1234 — rollback applied manually at 03:00"
+# expires       = "2025-03-01"               # Must have a hard expiry
+# approved_by   = "lead@yourorg.com"
+
+
+# ---------------------------------------------------------------------------
+# NOTIFICATIONS
+# Where CC-Forge sends critical drift findings and security alerts for this project.
+# Webhook URL is read from the environment variable named in webhook_env —
+# never put the URL itself in this file.
+# ---------------------------------------------------------------------------
+
+[notifications]
+# Set channel to "none" to disable notifications for a given event type.
+critical_drift  = { channel = "slack", webhook_env = "FORGE_SLACK_WEBHOOK" }
+session_summary = { channel = "none" }   # none | slack
+
+
+# ---------------------------------------------------------------------------
+# SESSION HISTORY
+# Where Forge Loop archives, drift snapshots, and build records are stored.
+# .forge/ is gitignored — this is runtime state, not config.
+# ---------------------------------------------------------------------------
+
+[session_history]
+path        = ".forge/history"
+retain_days = 90
+snapshot_on = ["post-deploy", "forge-loop-complete", "simplify-complete"]

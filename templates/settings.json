@@ -1,0 +1,200 @@
+{
+  "description": "CC-Forge Claude Code settings — tool permissions, hook wiring, env vars. Deploy to {project}/.claude/settings.json",
+
+  "enableAllProjectMcpServers": false,
+
+  "env": {
+    "MAX_THINKING_TOKENS": "16000",
+    "BASH_DEFAULT_TIMEOUT_MS": "300000",
+    "BASH_MAX_TIMEOUT_MS": "600000"
+  },
+
+  "permissions": {
+    "allow": [
+      "Bash(bun run *)",
+      "Bash(bun install)",
+      "Bash(bun outdated)",
+      "Bash(bunx *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push)",
+      "Bash(git checkout *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git secrets --scan)",
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl top *)",
+      "Bash(microk8s kubectl get *)",
+      "Bash(microk8s kubectl describe *)",
+      "Bash(microk8s kubectl logs *)",
+      "Bash(microk8s kubectl top *)",
+      "Bash(microk8s kubectl rollout status *)",
+      "Bash(microk8s kubectl rollout history *)",
+      "Bash(microk8s kubectl get events *)",
+      "Bash(microk8s status)",
+      "Bash(helm diff *)",
+      "Bash(helm list *)",
+      "Bash(helm lint *)",
+      "Bash(flyway info)",
+      "Bash(flyway validate)",
+      "Bash(python3 *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(echo *)",
+      "Bash(ls *)",
+      "Bash(jq *)",
+      "Bash(dasel *)",
+      "Edit",
+      "Read"
+    ],
+    "deny": [
+      "Bash(kubectl apply *)",
+      "Bash(kubectl delete *)",
+      "Bash(kubectl exec *)",
+      "Bash(helm upgrade *)",
+      "Bash(helm rollback *)",
+      "Bash(flyway migrate)",
+      "Bash(flyway repair)",
+      "Bash(flyway clean)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(chmod 777 *)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)",
+      "Read(.env)",
+      "Read(.env.local)",
+      "Read(.env.production)",
+      "Read(.env.production.local)",
+      "Read(.env.development)",
+      "Read(.env.development.local)",
+      "Read(.env.*.local)",
+      "Read(**/.env)",
+      "Read(**/secrets/**)",
+      "Read(**/*credentials*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)"
+    ]
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .forge/state.json ] && command -v jq >/dev/null 2>&1; then PHASE=$(jq -r '.phase // \"idle\"' .forge/state.json); TASK=$(jq -r '.build.current_task // \"none\"' .forge/state.json); DONE=$(jq -r '.build.completed_tasks | length' .forge/state.json); echo \"[CC-Forge] Phase: $PHASE | Current task: $TASK | Completed: $DONE task(s)\"; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .forge/security.json ] && command -v jq >/dev/null 2>&1; then OVERALL=$(jq -r '.scores.overall' .forge/security.json); CRITICAL=$(jq -r '.findings.code.critical' .forge/security.json); [ \"$CRITICAL\" -gt 0 ] && echo \"[CC-Forge] ⚠️  SECURITY: $CRITICAL critical finding(s). Run /sec before other work.\"; echo \"[CC-Forge] Security score: $OVERALL/100\"; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f claude-progress.txt ]; then printf '\\n[CC-Forge] Last session progress:\\n'; tail -15 claude-progress.txt; fi"
+          }
+        ]
+      }
+    ],
+
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/validate-bash.sh ]; then bash .claude/hooks/validate-bash.sh; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(microk8s kubectl apply *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/pre-deploy.sh ]; then bash .claude/hooks/pre-deploy.sh; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(helm upgrade *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/pre-deploy.sh ]; then bash .claude/hooks/pre-deploy.sh; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(flyway migrate *)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[CC-Forge] flyway migrate requires explicit confirmation. Verify target environment and rollback script exists.'"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v jq >/dev/null 2>&1 || exit 0; FILE=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); [ -n \"$FILE\" ] || exit 0; mkdir -p .forge/logs 2>/dev/null; echo \"$(date +%H:%M:%S) WRITE: $FILE\" >> .forge/logs/file-changes.log 2>/dev/null; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/post-edit.sh ]; then bash .claude/hooks/post-edit.sh; fi"
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/session-end.sh ]; then bash .claude/hooks/session-end.sh; fi; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "UNCOMMITTED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$UNCOMMITTED\" -gt 0 ]; then echo \"[CC-Forge] Session ending with ${UNCOMMITTED} uncommitted change(s). Commit or stash before closing.\"; fi; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

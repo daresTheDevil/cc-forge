@@ -1,0 +1,502 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "model": "opusplan",
+  "outputStyle": "Explanatory",
+  "effortLevel": "high",
+  "alwaysThinkingEnabled": true,
+  "forceLoginMethod": "claudeai",
+  "respectGitignore": true,
+  "cleanupPeriodDays": 365,
+  "spinnerTipsEnabled": false,
+  "terminalProgressBarEnabled": true,
+  "autoUpdatesChannel": "latest",
+  "skipDangerousModePermissionPrompt": true,
+  "enableAllProjectMcpServers": false,
+
+  "attribution": {
+    "commit": "David - @daresTheDevil",
+    "pr": "David - @daresTheDevil"
+  },
+
+  "teammateMode": "auto",
+
+  "env": {
+    "MAX_THINKING_TOKENS": "31999",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "32000",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "BASH_DEFAULT_TIMEOUT_MS": "300000",
+    "BASH_MAX_TIMEOUT_MS": "600000",
+    "BASH_MAX_OUTPUT_LENGTH": "50000",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "85",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "DISABLE_COST_WARNINGS": "1",
+    "DISABLE_AUTOUPDATER": "0",
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1"
+  },
+
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+
+  "permissions": {
+    "defaultMode": "dontAsk",
+
+    "allow": [
+
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "mcp__*",
+
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git remote:*)",
+      "Bash(git fetch:*)",
+      "Bash(git stash:*)",
+      "Bash(git worktree:*)",
+      "Bash(git tag:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git blame:*)",
+      "Bash(git shortlog:*)",
+      "Bash(git secrets --scan:*)",
+
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm list:*)",
+      "Bash(npm outdated:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(bun run:*)",
+      "Bash(bun install:*)",
+      "Bash(bun test:*)",
+      "Bash(bun add:*)",
+      "Bash(bun outdated:*)",
+      "Bash(bunx:*)",
+      "Bash(npx:*)",
+      "Bash(tsx:*)",
+      "Bash(node:*)",
+
+      "Bash(php:*)",
+      "Bash(php -l:*)",
+      "Bash(composer install:*)",
+      "Bash(composer update:*)",
+      "Bash(composer require:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(composer audit:*)",
+      "Bash(composer show:*)",
+
+      "Bash(python3:*)",
+      "Bash(pip3 list:*)",
+      "Bash(pip3 show:*)",
+      "Bash(pipx:*)",
+      "Bash(pytest:*)",
+      "Bash(black:*)",
+      "Bash(isort:*)",
+      "Bash(bandit:*)",
+      "Bash(mypy:*)",
+      "Bash(ruff:*)",
+
+      "Bash(gh issue:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(gh workflow view:*)",
+      "Bash(gh secret list:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh release view:*)",
+
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(which:*)",
+      "Bash(type:*)",
+      "Bash(file:*)",
+      "Bash(stat:*)",
+      "Bash(du:*)",
+      "Bash(df:*)",
+      "Bash(pwd)",
+      "Bash(tree:*)",
+      "Bash(diff:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(awk:*)",
+      "Bash(sed:*)",
+      "Bash(tr:*)",
+      "Bash(cut:*)",
+      "Bash(paste:*)",
+      "Bash(xargs:*)",
+
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(jq:*)",
+      "Bash(yq:*)",
+
+      "Bash(ps:*)",
+      "Bash(pgrep:*)",
+      "Bash(lsof:*)",
+      "Bash(top -bn1:*)",
+      "Bash(ss:*)",
+      "Bash(netstat:*)",
+
+      "Bash(ping:*)",
+      "Bash(nslookup:*)",
+      "Bash(dig:*)",
+      "Bash(host:*)",
+
+      "Bash(microk8s kubectl get:*)",
+      "Bash(microk8s kubectl describe:*)",
+      "Bash(microk8s kubectl logs:*)",
+      "Bash(microk8s kubectl top:*)",
+      "Bash(microk8s kubectl config:*)",
+      "Bash(microk8s kubectl rollout status:*)",
+      "Bash(microk8s kubectl rollout history:*)",
+      "Bash(microk8s kubectl get events:*)",
+      "Bash(microk8s kubectl diff:*)",
+      "Bash(microk8s status:*)",
+      "Bash(microk8s version:*)",
+      "Bash(microk8s inspect:*)",
+
+      "Bash(helm list:*)",
+      "Bash(helm get:*)",
+      "Bash(helm diff:*)",
+      "Bash(helm lint:*)",
+      "Bash(helm template:*)",
+      "Bash(helm search:*)",
+      "Bash(helm show:*)",
+      "Bash(helm status:*)",
+      "Bash(helm history:*)",
+
+      "Bash(flyway info:*)",
+      "Bash(flyway validate:*)",
+
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker images:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker stats:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker-compose logs:*)",
+
+      "Bash(eslint:*)",
+      "Bash(prettier:*)",
+      "Bash(biome:*)",
+      "Bash(semgrep:*)",
+
+      "Bash(jest:*)",
+      "Bash(vitest:*)",
+
+      "Bash(make:*)",
+      "Bash(go:*)",
+      "Bash(cargo:*)",
+      "Bash(brew list:*)",
+      "Bash(brew info:*)",
+
+      "Bash(claude:*)",
+
+      "Bash(PGPASSWORD=*)",
+
+      "Read(.golem/**)"
+
+    ],
+
+    "ask": [
+
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+      "Bash(git clean:*)",
+      "Bash(git checkout -b:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git-filter-repo:*)",
+
+      "Bash(npm publish:*)",
+      "Bash(composer publish:*)",
+
+      "Bash(microk8s kubectl apply:*)",
+      "Bash(microk8s kubectl delete:*)",
+      "Bash(microk8s kubectl create:*)",
+      "Bash(microk8s kubectl patch:*)",
+      "Bash(microk8s kubectl edit:*)",
+      "Bash(microk8s kubectl exec:*)",
+      "Bash(microk8s kubectl run:*)",
+      "Bash(microk8s kubectl rollout restart:*)",
+      "Bash(microk8s kubectl scale:*)",
+      "Bash(microk8s kubectl cordon:*)",
+      "Bash(microk8s kubectl drain:*)",
+      "Bash(microk8s kubectl port-forward:*)",
+      "Bash(microk8s kubectl debug:*)",
+      "Bash(microk8s enable:*)",
+      "Bash(microk8s disable:*)",
+
+      "Bash(helm install:*)",
+      "Bash(helm upgrade:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(helm delete:*)",
+      "Bash(helm rollback:*)",
+
+      "Bash(flyway migrate:*)",
+      "Bash(flyway repair:*)",
+      "Bash(flyway baseline:*)",
+      "Bash(flyway clean:*)",
+
+      "Bash(sqlcmd:*)",
+      "Bash(sqlplus:*)",
+      "Bash(psql:*)",
+      "Bash(mysql:*)",
+      "Bash(mongosh:*)",
+      "Bash(redis-cli:*)",
+      "Bash(sqlite3:*)",
+
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker push:*)",
+      "Bash(docker pull:*)",
+      "Bash(docker rm:*)",
+      "Bash(docker rmi:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)",
+
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(mv:*)",
+      "Bash(cp -r:*)",
+      "Bash(chmod:*)",
+      "Bash(chown:*)",
+      "Bash(ln:*)",
+
+      "Bash(kill:*)",
+      "Bash(killall:*)",
+      "Bash(pkill:*)",
+
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(nc:*)",
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(rsync:*)",
+
+      "Bash(env:*)",
+      "Bash(printenv:*)",
+
+      "Bash(brew install:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(brew uninstall:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pip3 uninstall:*)",
+
+      "Bash(terraform:*)",
+      "Bash(aws:*)",
+      "Bash(gcloud:*)",
+      "Bash(az:*)"
+
+    ],
+
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(su:*)",
+      "Bash(sudo -s:*)",
+      "Bash(sudo -i:*)",
+
+      "Bash(curl * | bash:*)",
+      "Bash(wget * | bash:*)",
+      "Bash(curl * | sh:*)",
+
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin master:*)",
+
+      "Bash(flyway clean:*)",
+      "Bash(kubectl delete namespace:*)",
+      "Bash(microk8s kubectl delete namespace:*)",
+
+      "Read(.env)",
+      "Read(.env.local)",
+      "Read(.env.production)",
+      "Read(.env.production.local)",
+      "Read(.env.development)",
+      "Read(.env.development.local)",
+      "Read(.env.*.local)",
+      "Read(**/.env)",
+      "Read(**/secrets/**)",
+      "Read(**/*credentials*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/.ssh/**)"
+    ]
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PENDING=\"${HOME}/.claude/pending-resume\"; if [ -f \"$PENDING\" ]; then HPATH=$(cat \"$PENDING\" | tr -d '[:space:]'); rm -f \"$PENDING\"; if [ -f \"$HPATH\" ]; then printf '\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n[CC-FORGE RESUME] Handoff loaded from: %s\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n' \"$HPATH\"; cat \"$HPATH\"; printf '\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n[CC-FORGE RESUME] Read the handoff above. Resume from where the previous session ended.\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n'; fi; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f claude-progress.txt ]; then printf '\\n[CC-FORGE] Progress file found:\\n'; tail -20 claude-progress.txt; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f .golem/state.json ] && command -v jq >/dev/null 2>&1; then echo \"[GOLEM] Phase: $(jq -r '.phase // \"unknown\"' .golem/state.json) | Tasks: $(jq -r '\"\\(.tasks_completed // 0)/\\(.tasks_total // 0)\"' .golem/state.json)\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "if [ -f .claude/forge/project.toml ]; then PROJECT=$(grep '^name' .claude/forge/project.toml | head -1 | cut -d'\"' -f2); WORKSPACE=$(grep '^workspace' .claude/forge/project.toml | head -1 | cut -d'\"' -f2); echo \"[CC-FORGE] Project: ${PROJECT} | Workspace: ${WORKSPACE}\"; fi"
+          },
+          {
+            "type": "command",
+            "command": "echo \"[GIT] Branch: $(git branch --show-current 2>/dev/null || echo 'not a git repo') | Status: $(git status --short 2>/dev/null | wc -l | tr -d ' ') changed files\""
+          },
+          {
+            "type": "command",
+            "command": "(nohup ~/.claude/update-usage-cache.mjs >/dev/null 2>&1 &)"
+          }
+        ]
+      }
+    ],
+
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.golem/hooks/context-handoff.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.golem/hooks/block-destructive.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.golem/hooks/block-push-main.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.golem/hooks/version-tag-sync.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(microk8s kubectl apply:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/pre-deploy.sh ]; then bash .claude/hooks/pre-deploy.sh; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(helm upgrade:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/pre-deploy.sh ]; then bash .claude/hooks/pre-deploy.sh; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(flyway migrate:*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[CC-FORGE] flyway migrate requires explicit confirmation. Verify target environment and rollback script exists before proceeding.'"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v jq >/dev/null 2>&1 || exit 0; jq -r '.tool_input.file_path // empty' | tr -d '\\n\\r' | { read f; [ -n \"$f\" ] && echo \"$(date +%H:%M:%S) WRITE: $f\" >> .golem/logs/file-changes.log 2>/dev/null; exit 0; }"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/post-edit.sh ]; then bash .claude/hooks/post-edit.sh; fi"
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .golem/state.json ]; then echo \"$(date +%Y-%m-%dT%H:%M:%S) Session ended\" >> .golem/logs/session.log 2>/dev/null; fi; exit 0"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "UNCOMMITTED=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' '); if [ \"$UNCOMMITTED\" -gt 0 ]; then echo \"[CC-FORGE] Session ending with ${UNCOMMITTED} uncommitted change(s). Commit or stash before closing.\"; fi; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,248 @@
+# ~/.claude/forge/workspaces/applications/workspace.toml
+# CC-Forge Workspace Configuration — Application Layer
+#
+# Covers: Nuxt frontend, Python/Node API services, legacy PHP applications,
+#         application-level security, API governance, frontend standards.
+#
+# Inheritance: forge.toml (global) → this file → project.toml (local)
+# Projects in this workspace can extend these settings but not weaken them.
+# ---------------------------------------------------------------------------
+
+[workspace]
+id          = "applications"
+name        = "Application Layer"
+description = "Nuxt frontend, API services, legacy PHP"
+version     = "1.0"
+
+[workspace.ownership]
+team    = "applications"
+lead    = "app-lead@yourorg.com"
+oncall  = "app-oncall@yourorg.com"
+
+# ---------------------------------------------------------------------------
+# PROJECTS
+# ---------------------------------------------------------------------------
+
+[[projects]]
+id   = "frontend-nuxt"
+name = "Nuxt Frontend Application"
+repo = "git@github.com:yourorg/frontend-nuxt"
+
+[[projects]]
+id   = "api-core"
+name = "Core API Service"
+repo = "git@github.com:yourorg/api-core"
+
+[[projects]]
+id   = "api-integrations"
+name = "Integrations API"
+repo = "git@github.com:yourorg/api-integrations"
+
+[[projects]]
+id   = "legacy-php"
+name = "Legacy PHP Application"
+repo = "git@github.com:yourorg/legacy-php"
+
+# ---------------------------------------------------------------------------
+# DOMAIN: API
+# Workspace-level API standards applied to all application projects with APIs.
+# ---------------------------------------------------------------------------
+
+[domains.api]
+enabled    = true
+style      = "openapi-first"      # all new APIs must be spec-first
+gateway    = "kong"               # api gateway — referenced in coherence registry
+
+  [domains.api.standards]
+  require_openapi_spec              = true
+  openapi_version                   = "3.1"
+  require_auth_on_all_routes        = true
+  require_rate_limiting             = true
+  require_request_validation        = true
+  require_response_validation       = false  # advisory — too noisy in legacy contexts
+  require_error_schema              = true
+  require_correlation_id            = true   # all requests must propagate correlation id
+  require_structured_logging        = true
+  max_response_time_ms              = 500    # p99 target — blast radius check flags violations
+
+  [domains.api.versioning]
+  strategy        = "header"               # header | url-path | query-param
+  header_name     = "API-Version"
+  deprecation_notice_days = 90             # minimum notice before removing a version
+
+  [domains.api.auth]
+  # Workspace-wide auth standards
+  strategy        = "jwt"                  # jwt | oauth2 | api-key | mtls
+  require_https   = true
+  token_expiry_max_seconds = 3600          # 1 hour max token lifetime
+  require_refresh_token_rotation = true
+
+  [domains.api.contracts]
+  # Consumer-driven contract testing
+  enabled         = true
+  tool            = "pact"
+  broker_env      = "PACT_BROKER_URL"
+  require_on_breaking_change = true
+
+# ---------------------------------------------------------------------------
+# DOMAIN: FRONTEND
+# ---------------------------------------------------------------------------
+
+[domains.frontend]
+enabled    = true
+framework  = "nuxt"
+
+  [domains.frontend.standards]
+  require_typescript              = true
+  strict_typescript               = true       # noImplicitAny, strictNullChecks, etc.
+  require_component_tests         = true
+  require_e2e_tests               = true
+  e2e_tool                        = "playwright"
+  require_a11y_checks             = true
+  a11y_standard                   = "WCAG2.1-AA"
+  require_lighthouse_ci           = true
+
+  [domains.frontend.lighthouse_thresholds]
+  performance    = 85
+  accessibility  = 95
+  best_practices = 90
+  seo            = 80
+
+  [domains.frontend.bundle]
+  # Bundle size gates — blast radius check flags regressions
+  max_initial_bundle_kb   = 250
+  max_chunk_kb            = 150
+  require_bundle_analysis = true   # generate bundle report on every build
+
+  [domains.frontend.state]
+  # State management standards
+  disallow_direct_dom_mutation = true
+  require_composables_for_logic = true   # no business logic in components
+
+# ---------------------------------------------------------------------------
+# DOMAIN: LEGACY PHP
+# Extra discipline for legacy code — higher blast radius multiplier,
+# characterization tests required before any refactor.
+# ---------------------------------------------------------------------------
+
+[domains.legacy]
+enabled     = true
+language    = "php"
+has_framework = false
+blast_radius_multiplier = 1.5      # inherited by all projects with legacy domain
+
+  [domains.legacy.standards]
+  require_characterization_tests   = true
+  characterization_coverage_floor  = 0.60    # 60% coverage before refactor allowed
+  max_function_length_lines        = 50
+  max_file_length_lines            = 300
+  require_input_validation         = true
+  require_output_escaping          = true    # XSS prevention
+  disallow_dynamic_includes        = true    # no include($variable)
+  disallow_eval                    = true
+
+  [domains.legacy.migration]
+  # Guidelines for incrementally modernizing legacy code
+  strategy    = "strangler-fig"
+  require_api_boundary_before_rewrite = true  # wrap in API before rewriting internals
+  require_parity_tests             = true     # new and old must produce identical output
+
+# ---------------------------------------------------------------------------
+# DOMAIN: TESTING
+# Workspace-wide testing standards across all application types.
+# ---------------------------------------------------------------------------
+
+[domains.testing]
+enabled = true
+
+  [domains.testing.coverage]
+  # Coverage floors — project.toml can raise these, not lower
+  unit_floor         = 0.80      # 80% unit test coverage
+  integration_floor  = 0.60
+  e2e_critical_paths = true      # all critical user paths must have e2e coverage
+
+  [domains.testing.standards]
+  require_test_per_acceptance_criterion = true   # spec AC → test is mandatory
+  disallow_skipped_tests_without_ticket = true   # no .skip without a tracking issue
+  require_contract_tests_on_api_change  = true
+  mutation_testing                       = false  # advisory — enable per-project
+
+  [domains.testing.naming]
+  # Test file naming conventions
+  unit_pattern        = "**/*.spec.{ts,js,py}"
+  integration_pattern = "**/*.integration.spec.{ts,js,py}"
+  e2e_pattern         = "tests/e2e/**/*.spec.ts"
+
+# ---------------------------------------------------------------------------
+# DOMAIN: OBSERVABILITY
+# All application services must be observable.
+# ---------------------------------------------------------------------------
+
+[domains.observability]
+enabled = true
+
+  [domains.observability.standards]
+  require_structured_logging   = true
+  log_format                   = "json"
+  require_request_tracing      = true
+  tracing_standard             = "opentelemetry"
+  require_health_endpoints     = true
+  health_liveness_path         = "/health/live"
+  health_readiness_path        = "/health/ready"
+  require_metrics_endpoint     = true
+  metrics_format               = "prometheus"
+
+  [domains.observability.slos]
+  # Service Level Objectives — blast radius check flags changes that risk these
+  availability_target   = 0.999     # 99.9%
+  latency_p99_ms        = 500
+  error_rate_max        = 0.001     # 0.1%
+
+# ---------------------------------------------------------------------------
+# COHERENCE REGISTRY
+# ---------------------------------------------------------------------------
+
+[coherence_registry]
+graph_path = "~/.claude/forge/workspaces/applications/registry/graph.json"
+auto_merge = true
+
+  [coherence_registry.entities]
+  services       = true
+  api_endpoints  = true
+  ui_components  = true
+  ui_routes      = true
+  dependencies   = true
+  feature_flags  = true
+  contracts      = true       # pact consumer/provider contracts
+
+# ---------------------------------------------------------------------------
+# FEATURES
+# Application workspace tunes for faster iteration cadence.
+# ---------------------------------------------------------------------------
+
+[features.forge_loop]
+auto_trigger_after_builds = 5    # matches global default — apps iterate faster than platform
+improvement_threshold     = 0.05
+
+[features.drift_detection]
+run_on = ["pre-build", "post-deploy"]
+
+[features.blast_radius_analysis]
+scope = "workspace"              # app changes rarely affect platform directly
+
+# ---------------------------------------------------------------------------
+# GRADING
+# Applications use global thresholds — platform tightened theirs.
+# ---------------------------------------------------------------------------
+
+[grading.security]
+fail_on_severity = "high"        # global default
+
+# ---------------------------------------------------------------------------
+# NOTIFICATIONS
+# ---------------------------------------------------------------------------
+
+[notifications]
+critical_drift  = { channel = "slack", webhook_env = "FORGE_APP_SLACK_WEBHOOK" }
+session_summary = { channel = "none" }
+deploy_complete = { channel = "slack", webhook_env = "FORGE_APP_SLACK_WEBHOOK" }

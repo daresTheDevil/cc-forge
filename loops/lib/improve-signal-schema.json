@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForgeLoopSignal",
+  "description": "JSON Schema for the CC-Forge improve loop signal contract. Claude emits this from .structured_output. The shell loop controller reads it and decides whether to iterate.",
+  "type": "object",
+  "required": ["status", "iteration", "delta", "metrics", "completed", "skipped", "blockers", "next_focus", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["loop", "complete", "error", "blocked"],
+      "description": "loop=delta above threshold, iterate again; complete=done or queue exhausted; error=exit non-zero; blocked=human input required"
+    },
+    "iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Current iteration number (1-based, provided in prompt and echoed back)"
+    },
+    "delta": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Aggregate improvement delta this iteration (0.0=no improvement, 1.0=maximum improvement)"
+    },
+    "metrics": {
+      "type": "object",
+      "description": "Measured values after this iteration. All fields optional — emit what was measurable. The four named fields have validated types; additional language-specific metrics (e.g. php_syntax_errors, bandit_findings) are allowed as non-negative numbers.",
+      "properties": {
+        "typecheck_errors": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of TypeScript/mypy type errors"
+        },
+        "lint_findings": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of lint findings (Biome, ESLint, ruff, etc.)"
+        },
+        "test_coverage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Test coverage as a ratio (0.0 to 1.0)"
+        },
+        "complexity_score": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sum of cyclomatic complexity for functions exceeding threshold"
+        }
+      },
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Additional language-specific or tool-specific metric (e.g. php_syntax_errors, bandit_findings, security_hotspots)"
+      }
+    },
+    "completed": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Descriptive slugs of improvement items completed this iteration (e.g., 'reduce-auth-complexity', 'add-missing-test-coverage-api')"
+    },
+    "skipped": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Slugs of improvement items skipped this iteration (reason in summary)"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Slug identifying the blocked item"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why human input is needed before this item can proceed"
+          }
+        }
+      },
+      "description": "Items that require human input before they can proceed"
+    },
+    "next_focus": {
+      "type": "string",
+      "description": "Slug of the top improvement opportunity for the next iteration. Empty string if complete."
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 300,
+      "description": "One sentence human-readable summary of what happened this iteration"
+    }
+  }
+}

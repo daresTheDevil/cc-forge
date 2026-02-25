@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ForgeCoherenceGraph",
+  "description": "JSON Schema for CC-Forge coherence registry files (project-graph.json, global-graph.json). Enforces entity kinds and relationship types to prevent drift in registry nomenclature across sessions.",
+  "type": "object",
+  "required": ["version", "last_updated", "entities", "relationships"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version of this registry file",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "last_updated": {
+      "type": ["string", "null"],
+      "description": "ISO 8601 timestamp of last update, or null if never written",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional human-readable description of this registry"
+    },
+    "entities": {
+      "type": "array",
+      "description": "Inventory of known system entities in this scope",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "name", "path"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable, slug-style identifier (e.g. svc-auth-api, db-sql-users)",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "service",
+              "database",
+              "k8s_resource",
+              "api_endpoint",
+              "ui_component",
+              "secret",
+              "configmap",
+              "pipeline_stage",
+              "library",
+              "external_service"
+            ],
+            "description": "Entity classification. 'service' = any running process. 'database' = any data store. 'k8s_resource' = a Kubernetes object. 'api_endpoint' = a specific HTTP route. 'ui_component' = a frontend component. 'secret' = a credentials store. 'configmap' = a config store. 'pipeline_stage' = a CI/CD step. 'library' = a shared internal package. 'external_service' = a third-party dependency."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable display name (e.g. 'Auth API', 'User Database')",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Repo-relative path to the entity's primary artifact (e.g. services/auth-api, deploy/helm/auth)"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Arbitrary key-value pairs for entity-specific context (language, framework, namespace, etc.)",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "description": "Directed edges between entities describing how they interact",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "ID of the source entity (must match an entity id in this registry)",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "to": {
+            "type": "string",
+            "description": "ID of the target entity (must match an entity id in this registry)",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "reads-from",
+              "writes-to",
+              "depends-on",
+              "authenticates-via",
+              "deployed-by",
+              "tested-by",
+              "exposes",
+              "routes-to",
+              "configures"
+            ],
+            "description": "Relationship type. reads-from/writes-to: data flow. depends-on: runtime dependency. authenticates-via: auth delegation. deployed-by: CI/CD relationship. tested-by: test coverage. exposes: API surface. routes-to: ingress/gateway routing. configures: config management."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Arbitrary key-value pairs for relationship context (e.g. protocol, port, read-only flag)",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  }
+}

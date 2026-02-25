@@ -1,0 +1,32 @@
+{
+  "scores": {
+    "code": 100,
+    "deps": 100,
+    "secrets": 100,
+    "infra": 100,
+    "overall": 100
+  },
+  "last_audit": null,
+  "findings": {
+    "code": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    "deps": {
+      "critical_vulns": 0,
+      "high_vulns": 0,
+      "outdated_major": 0
+    },
+    "secrets": {
+      "rotation_schedule": {}
+    },
+    "infra": {
+      "pods_without_resource_limits": 0,
+      "pods_without_security_context": 0,
+      "network_policies_missing": false,
+      "rbac_violations": 0
+    }
+  }
+}
