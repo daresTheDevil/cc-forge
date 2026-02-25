@@ -112,6 +112,96 @@ The result: Claude Code always knows the shape of your system, not just the file
 
 ---
 
+## Workflows
+
+### Onboarding a new project
+
+Run once when you first add CC-Forge to an existing repo:
+
+```bash
+cd your-project
+forge init applications          # installs hooks, agent_docs, registry
+```
+
+Then inside Claude Code:
+
+```
+/forge--recon                    # maps the codebase, populates project-graph.json
+                                 # and fills agent_docs/ with architecture, schema,
+                                 # API patterns, k8s layout — all verified against source
+```
+
+You now have a live coherence registry and Claude has full context of your system. Everything else builds on this.
+
+---
+
+### Planning and shipping a new feature
+
+```
+/forge--discuss "user wants SSO via SAML"
+```
+Talk through the feature. CC-Forge surfaces assumptions, identifies unknowns, and exposes hidden constraints — auth edge cases, blast radius, dependencies — before a line of code is written.
+
+```
+/forge--spec discuss-sso.md
+```
+Produces a structured PRD with testable acceptance criteria. This becomes the contract between intent and implementation.
+
+```
+/forge--plan spec-sso.md
+```
+Breaks the spec into an implementation graph with explicit task dependencies and build order. Output is `plan-sso.md`.
+
+```
+/forge--blast plan-sso.md
+```
+Maps every entity and relationship the feature will touch. If it crosses domain boundaries, you know before you start — not after.
+
+```bash
+~/.claude/loops/build.sh plan-sso.md
+```
+Headless TDD build loop. Claude writes the failing test first, implements until it passes, commits, moves to the next task. You come back to working, tested, committed code.
+
+```
+/forge--review
+```
+Parallel review: Code quality (Sonnet) + Security (Opus) + Performance (Sonnet) run simultaneously. Findings aggregated with `[AUTO]` / `[REVIEW]` / `[HALT]` certainty grades. HALT findings block the ship.
+
+---
+
+### Responding to a production incident
+
+Something is broken in prod. Skip the channel noise and go straight to structure:
+
+```
+/forge--fire
+```
+
+Activates the full incident protocol:
+
+| Phase | What Happens |
+|---|---|
+| `TRIAGE` | Classify severity, identify affected systems, establish incident scope |
+| `ISOLATE` | Narrow blast radius — what's broken vs what's at risk |
+| `DIAGNOSE` | Root cause analysis against live state — logs, config, secrets, connectivity |
+| `PATCH` | Targeted fix with minimum blast radius. Tests required before any deploy. |
+| `VERIFY` | Confirm the fix holds. Check adjacent systems for side effects. |
+| `DEBRIEF` | Auto-generated post-mortem written to `.forge/runbooks/` |
+
+Speed over perfection — the protocol keeps you moving without missing steps under pressure.
+
+---
+
+### Continuous improvement (run overnight)
+
+```bash
+~/.claude/loops/forge-loop.sh --scope src/
+```
+
+Each iteration: measure → identify top opportunity → improve → verify → signal. The shell reads the signal and decides whether to keep going. Wake up to a measurably better codebase with a full audit trail in `.forge/history/`.
+
+---
+
 ## Slash Commands
 
 All commands use the `forge--` prefix — unambiguous, no conflicts with Claude built-ins.
