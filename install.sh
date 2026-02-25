@@ -445,7 +445,22 @@ if [ "$MODE" = "project" ]; then
         success "npm script found: $SCRIPT"
       else
         warn "npm script missing: $SCRIPT — Forge Loop metrics will be degraded"
-        warn "  Add to package.json scripts: \"$SCRIPT\": \"[command]\""
+        if [ "$SCRIPT" = "test:coverage" ]; then
+          # Detect test framework and suggest the right command
+          if jq -e '.dependencies["vitest"] // .devDependencies["vitest"]' package.json >/dev/null 2>&1; then
+            warn "  Fix: add to package.json scripts: \"test:coverage\": \"vitest run --coverage\""
+          elif jq -e '.dependencies["jest"] // .devDependencies["jest"]' package.json >/dev/null 2>&1; then
+            warn "  Fix: add to package.json scripts: \"test:coverage\": \"jest --coverage\""
+          elif jq -e '.dependencies["nuxt"] // .devDependencies["nuxt"]' package.json >/dev/null 2>&1; then
+            warn "  Fix (Nuxt): install vitest + coverage, then add:"
+            warn "    npm install -D vitest @nuxt/test-utils @vitest/coverage-v8"
+            warn "    \"test:coverage\": \"vitest run --coverage\""
+          else
+            warn "  Fix: add to package.json scripts: \"test:coverage\": \"<your-test-runner> --coverage\""
+          fi
+        else
+          warn "  Add to package.json scripts: \"$SCRIPT\": \"[command]\""
+        fi
       fi
     done
   fi

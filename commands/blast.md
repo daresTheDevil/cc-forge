@@ -15,7 +15,7 @@ Be thorough. Be paranoid. The developer is relying on you to catch what they did
 
 Read `.claude/forge/registry/project-graph.json`.
 
-If the registry is empty or non-existent, skip to Step 3 and note that the registry needs to be populated via `/recon`.
+If the registry is empty or non-existent, skip to Step 3 and note that the registry needs to be populated via `/forge--recon`.
 
 Identify:
 - All entities related to the change subject (direct + 1-hop relationships)
