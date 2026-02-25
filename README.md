@@ -158,7 +158,7 @@ Breaks the spec into an implementation graph with explicit task dependencies and
 Maps every entity and relationship the feature will touch. If it crosses domain boundaries, you know before you start — not after.
 
 ```bash
-~/.claude/loops/build.sh plan-sso.md
+forge build plan-sso.md
 ```
 Headless TDD build loop. Claude writes the failing test first, implements until it passes, commits, moves to the next task. You come back to working, tested, committed code.
 
@@ -195,7 +195,7 @@ Speed over perfection — the protocol keeps you moving without missing steps un
 ### Continuous improvement (run overnight)
 
 ```bash
-~/.claude/loops/forge-loop.sh --scope src/
+forge improve --scope src/
 ```
 
 Each iteration: measure → identify top opportunity → improve → verify → signal. The shell reads the signal and decides whether to keep going. Wake up to a measurably better codebase with a full audit trail in `.forge/history/`.
@@ -249,7 +249,7 @@ All commands use the `forge--` prefix — unambiguous, no conflicts with Claude 
 The continuous improvement loop runs headless from your terminal — Claude Code is not the loop controller, the shell is:
 
 ```bash
-~/.claude/loops/forge-loop.sh --scope src/
+forge improve --scope src/
 ```
 
 Each iteration, Claude measures the codebase, identifies the highest-impact improvement opportunity, makes the change, verifies it, and emits a structured JSON signal. The shell reads the signal and decides whether to iterate again.

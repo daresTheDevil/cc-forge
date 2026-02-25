@@ -5,6 +5,8 @@
 # Usage:
 #   forge init [workspace-id]   Initialize CC-Forge in the current project
 #   forge init --force          Re-initialize, overwriting existing files
+#   forge build [plan.md]       Run headless TDD build loop from a plan file
+#   forge improve [--scope dir] Run continuous improvement loop
 #   forge update                Update global CC-Forge install
 #   forge version               Show installed version
 #   forge help                  Show help
@@ -37,6 +39,22 @@ case "$SUBCMD" in
   init)
     exec "$FORGE_INSTALL" --project "$@"
     ;;
+  build)
+    BUILD_SH="${HOME}/.claude/loops/build.sh"
+    if [ ! -f "$BUILD_SH" ]; then
+      printf '[CC-Forge] ❌ build loop not found. Run: cc-forge --global to install.\n' >&2
+      exit 1
+    fi
+    exec "$BUILD_SH" "$@"
+    ;;
+  improve)
+    FORGE_LOOP="${HOME}/.claude/loops/forge-loop.sh"
+    if [ ! -f "$FORGE_LOOP" ]; then
+      printf '[CC-Forge] ❌ forge loop not found. Run: cc-forge --global to install.\n' >&2
+      exit 1
+    fi
+    exec "$FORGE_LOOP" "$@"
+    ;;
   update)
     printf 'Fetching latest CC-Forge...\n'
     if command -v pnpm >/dev/null 2>&1; then
@@ -60,17 +78,22 @@ case "$SUBCMD" in
     printf 'CC-Forge CLI\n\n'
     printf 'Usage: forge <command> [options]\n\n'
     printf 'Commands:\n'
-    printf '  init [workspace-id]   Initialize CC-Forge in the current project\n'
-    printf '  init --force          Re-initialize, overwriting existing files\n'
-    printf '  update                Update to the latest CC-Forge version\n'
-    printf '  version               Show installed version\n'
-    printf '  help                  Show this help\n\n'
+    printf '  init [workspace-id]        Initialize CC-Forge in the current project\n'
+    printf '  init --force               Re-initialize, overwriting existing files\n'
+    printf '  build [plan.md]            Run headless TDD build loop from a plan file\n'
+    printf '  build plan.md --task T003  Resume build loop from a specific task\n'
+    printf '  improve                    Run continuous improvement loop (current dir)\n'
+    printf '  improve --scope src/       Run improvement loop scoped to a directory\n'
+    printf '  update                     Update to the latest CC-Forge version\n'
+    printf '  version                    Show installed version\n'
+    printf '  help                       Show this help\n\n'
     printf 'Examples:\n'
     printf '  forge init\n'
     printf '  forge init applications\n'
-    printf '  forge init --force\n\n'
+    printf '  forge build plan-auth.md\n'
+    printf '  forge improve --scope src/\n\n'
     printf 'First time? Run the global installer:\n'
-    printf '  pnpm dlx cc-forge\n\n'
+    printf '  npx cc-forge\n\n'
     printf 'After project init, open Claude Code and run /forge--recon\n'
     ;;
   *)
