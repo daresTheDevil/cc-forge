@@ -152,10 +152,6 @@ STUB
   chmod +x "$FAKE_NPM"
 
   # Override HOME and PATH, then invoke the real forge bin in update mode
-  FORGE_CALLS_LOG="$FORGE_CALLS_LOG" \
-  HOME="$FAKE_HOME" \
-  PATH="${FAKE_HOME}/bin:$PATH" \
-    bash "$FORGE_BIN" update 2>/dev/null | true
   UPDATE_OUT="$(HOME="$FAKE_HOME" PATH="${FAKE_HOME}/bin:$PATH" FORGE_CALLS_LOG="$FORGE_CALLS_LOG" bash "$FORGE_BIN" update 2>&1 || true)"
 
   # AC4: real project directory should appear in the calls log

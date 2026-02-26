@@ -74,7 +74,26 @@ case "$SUBCMD" in
   update)
     printf '[CC-Forge] Updating to latest version...\n'
     npm install -g cc-forge@latest
-    cc-forge --force
+
+    REGISTRY="${HOME}/.claude/forge/registry/global-graph.json"
+    if [ -f "$REGISTRY" ] && command -v jq >/dev/null 2>&1; then
+      PROJECTS="$(jq -r '.entities[] | select(.type == "forge-project") | .path' "$REGISTRY" 2>/dev/null)"
+      if [ -n "$PROJECTS" ]; then
+        printf '[CC-Forge] Updating registered projects...\n'
+        while IFS= read -r project_path; do
+          if [ -d "$project_path" ]; then
+            printf '[CC-Forge] Updating: %s\n' "$project_path"
+            (cd "$project_path" && forge init --force --quiet) \
+              && printf '[CC-Forge] Done: %s\n' "$project_path" \
+              || printf '[CC-Forge] Failed: %s\n' "$project_path"
+          else
+            printf '[CC-Forge] Skipping (directory not found): %s\n' "$project_path"
+          fi
+        done <<< "$PROJECTS"
+      fi
+    fi
+
+    printf '[CC-Forge] All done. Run `forge version` to confirm.\n'
     ;;
   version|--version|-v)
     PKG="${PACKAGE_DIR}/package.json"

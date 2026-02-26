@@ -199,7 +199,7 @@ cd ~ && rm -rf /tmp/forge-test
 
 ---
 
-### T005 — `forge update` iterates registered projects
+### T005 — `forge update` iterates registered projects ✅ COMPLETE 2026-02-25
 
 Extend `forge update` in `bin/forge` to re-init all registered projects after
 updating the npm package.
