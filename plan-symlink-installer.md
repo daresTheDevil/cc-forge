@@ -355,11 +355,147 @@ rm -rf /tmp/fp1 /tmp/fp2
 
 | Version | Tasks | Description |
 |---|---|---|
-| `0.1.5` | T001, T002, T003 | Symlink-based global files |
-| `0.1.6` | T004, T005 | Registry registration + `forge update` project iteration |
-| `0.1.7` | T006, T007 | `forge deinit` + README |
+| `0.1.5` | T001–T007 | ✅ Shipped — symlink installer + one-command update + registry |
+| `0.1.6` | T008–T011 | Global graph harvest — recon promotes shared infra to global registry |
 
-Collapse into fewer releases if tasks complete cleanly together.
+---
+
+## Phase 2: Global Graph Harvest
+
+### Concept
+
+After `/forge--recon` populates the project graph, it runs a **harvest pass** that
+identifies globally-relevant entities and proposes merging them into the global
+registry at `~/.claude/forge/registry/global-graph.json`.
+
+The name: **harvest** — recon discovers, harvest extracts the globally relevant parts.
+
+### Entity Classification Rules
+
+| Entity Kind | Disposition |
+|---|---|
+| `database` | → Global candidate (shared infrastructure) |
+| `service` (external) | → Global candidate (auth providers, REST APIs, HR systems) |
+| `pipeline_stage` | → Global candidate (org-wide CI/CD) |
+| `k8s_resource` (cluster-level) | → Global candidate (Harbor registry, cluster) |
+| `service` (the app itself) | → Project-only |
+| `api_endpoint` | → Project-only |
+| `ui_component` | → Project-only |
+
+### Critical Constraint Propagation
+
+Some global entities carry hard constraints that must be preserved on merge and
+never silently overwritten. Example: Oracle SWS is READ ONLY at the account level —
+not a code guard, a database account restriction. This must be a first-class global
+annotation visible to any project that touches that entity.
+
+Constraint format in global graph:
+```json
+{
+  "id": "db-oracle-sws",
+  "kind": "database",
+  "name": "Oracle: SWS/Silver",
+  "constraints": [
+    {
+      "type": "access",
+      "value": "READ ONLY — account-level restriction, no write possible at runtime"
+    }
+  ]
+}
+```
+
+---
+
+### T008 — Add harvest classification logic to `/forge--recon` command ✅ COMPLETE 2026-02-25
+
+Update `commands/recon.md` to add a harvest pass at the end of the recon workflow.
+
+After writing `project-graph.json`, Claude should:
+1. Review all entities in the project graph
+2. Classify each by the rules above
+3. Output a proposed harvest diff — entities to add/update in the global graph
+4. Show the diff to the user and ask for confirmation before writing
+5. On confirmation, merge into `~/.claude/forge/registry/global-graph.json`
+   with deduplication (match on `id`) and constraint preservation
+
+**Verification:**
+```bash
+# Run recon in dashboard project
+cd ~/code/PROD/ACE/dashboard
+# After recon completes, check global graph has shared infra entities
+jq '.entities[] | select(.kind == "database") | .id' \
+  ~/.claude/forge/registry/global-graph.json
+# Should contain db-mssql-konami, db-oracle-sws, etc.
+
+# Confirm Oracle constraint is preserved
+jq '.entities[] | select(.id == "db-oracle-sws") | .constraints' \
+  ~/.claude/forge/registry/global-graph.json
+# Should show the READ ONLY constraint
+```
+
+---
+
+### T009 — Seed global graph with known PRR shared infrastructure ✅ COMPLETE 2026-02-25
+
+Manually populate the global graph with the shared infrastructure identified from
+the dashboard recon — this gives immediate value before T008 ships and provides
+the reference dataset for testing T008's deduplication logic.
+
+Entities to seed:
+- `ext-microsoft-entra-id` — primary auth for all PRR apps
+- `ext-ldap` — auth fallback + employee directory
+- `ext-ukg-rest` — HR system of record
+- `db-mssql-konami` — Konami Synkros (slot mgmt + banned patrons)
+- `db-mssql-newwave` — NewWave Gaming (casino CMS patron data)
+- `db-mssql-infogenesis` — InfoGenesis F&B POS at 172.30.120.10
+- `db-mssql-cct-prr` / `db-mssql-cct-bok-homa` / `db-mssql-cct-crystal-sky`
+- `db-oracle-sws` — Oracle SWS/Silver, READ ONLY constraint
+- `infra-harbor-registry` — `harbor.dev.pearlriverresort.com`
+- `infra-microk8s` — the cluster, namespace convention `prr-*`
+- `pipeline-woodpecker` — org-standard CI (not GitHub Actions)
+
+**Verification:**
+```bash
+jq '.entities | length' ~/.claude/forge/registry/global-graph.json
+# Should be 12+
+
+jq '.entities[] | select(.constraints) | {id, constraints}' \
+  ~/.claude/forge/registry/global-graph.json
+# Should show Oracle SWS with READ ONLY constraint
+```
+
+---
+
+### T010 — Conflict detection on harvest merge ✅ COMPLETE 2026-02-25
+
+When harvest proposes merging an entity that already exists in the global graph,
+it must detect conflicts rather than silently overwriting:
+
+- Same `id`, same data → skip (already current)
+- Same `id`, different metadata → show diff, ask which version wins
+- Same `id`, existing has constraints → NEVER drop constraints on merge, only add
+
+**Verification:**
+```bash
+# Manually add a constraint to an entity in global graph
+# Run recon again in same project
+# Confirm constraint is preserved, not overwritten
+```
+
+---
+
+### T011 — Update `/forge--blast` to read global graph for cross-project blast radius ✅ COMPLETE 2026-02-25
+
+`commands/blast.md` currently only reads the project-level graph. Update it to
+also read the global graph and surface cross-project impact: if you change a shared
+database schema, which OTHER registered projects are affected?
+
+**Verification:**
+```bash
+# With both dashboard and ACE_NUXT_OPTIMIZED registered, run blast on
+# a shared entity (e.g. db-postgres-primary)
+# Should surface relationships from both project graphs
+```
 
 ---
 

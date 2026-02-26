@@ -15,7 +15,15 @@ Be thorough. Be paranoid. The developer is relying on you to catch what they did
 
 Read `.claude/forge/registry/project-graph.json`.
 
-If the registry is empty or non-existent, skip to Step 3 and note that the registry needs to be populated via `/forge--recon`.
+If the registry is empty or non-existent, skip to Step 3 and note that the registry needs to be populated via `/forge--recon`. Proceed with file-level analysis using the global graph if available.
+
+Also read `~/.claude/forge/registry/global-graph.json` (the global registry).
+
+If the global graph is absent or empty, note it and continue — it is not an error. If the global graph is present, identify any entities in it that match the change subject (match on `id` or `name`).
+
+Use the global graph to enumerate which other registered projects may be affected:
+- Find `forge-project` entries in the global graph — these are all registered repos.
+- For each matched shared entity (database, external service, pipeline, infra), check which registered projects use it by scanning their project-level graphs (`.claude/forge/registry/project-graph.json` in each registered project path).
 
 Identify:
 - All entities related to the change subject (direct + 1-hop relationships)
@@ -42,6 +50,51 @@ Identify:
 - Documentation that describes affected behavior (agent_docs/, README, API docs)
 - Monitoring/alerting that references affected endpoints or metrics
 - Feature flags that control affected code paths
+
+---
+
+## Step 2b: Cross-Project Impact (Global Graph)
+
+If the global graph (`~/.claude/forge/registry/global-graph.json`) is present and the change subject matches a shared entity (a `database`, external `service`, `pipeline_stage`, or cluster-level `k8s_resource`), surface the cross-project blast radius:
+
+1. List all `forge-project` entries in the global graph — these are all registered repos.
+2. For each registered project path that exists on disk, check its `.claude/forge/registry/project-graph.json` for relationships to the affected entity.
+3. Report which other registered projects reference the same shared entity.
+
+Example:
+
+```bash
+GLOBAL="${HOME}/.claude/forge/registry/global-graph.json"
+ENTITY_ID="db-oracle-sws"
+
+# List registered project paths
+jq -r '.entities[] | select(.type == "forge-project") | .path' "$GLOBAL"
+
+# Check each project's graph for the entity
+for project_path in $(jq -r '.entities[] | select(.type == "forge-project") | .path' "$GLOBAL"); do
+  graph="${project_path}/.claude/forge/registry/project-graph.json"
+  if [ -f "$graph" ]; then
+    match=$(jq -r --arg id "$ENTITY_ID" '.entities[] | select(.id == $id) | .id' "$graph" 2>/dev/null || true)
+    [ -n "$match" ] && echo "AFFECTED: $project_path"
+  fi
+done
+```
+
+Report format:
+
+```
+## Cross-Project Impact
+Shared entity: [entity id / name]
+
+Registered projects that reference this entity:
+  [REVIEW] /path/to/project-a — references db-oracle-sws
+  [AUTO]   /path/to/project-b — no reference found
+
+Projects NOT found on disk (stale registry entries):
+  /path/to/old-project — directory does not exist
+```
+
+If no registered projects are found, or the global graph is absent, state this explicitly and continue.
 
 ---
 
