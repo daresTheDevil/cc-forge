@@ -57,3 +57,23 @@ User → [Frontend] → [API Gateway] → [Auth Service] → [Business Service] 
 ## Out of Scope (intentionally)
 
 [FILL IN: What is explicitly NOT handled by this system?]
+
+## Model Selection
+
+Model assignments use short aliases — `opus`, `sonnet`, `haiku`, or `inherit`. Full model IDs
+(e.g., `claude-opus-4-6`) are **never** written into frontmatter. Aliases are resolved at
+runtime by the CC-Forge executor, which allows a single setting change in forge configuration
+to update every command and agent simultaneously. When `inherit` is used, the model defaults
+to whatever is configured as the session default (currently `sonnet`).
+
+| Command / Agent | Model | Rationale |
+|---|---|---|
+| `/forge--sec` | opus | Security audit requires deep pattern recognition |
+| `/forge--plan` | opus | Architecture decisions require multi-step reasoning |
+| `/forge--recon` | haiku | Fast first-pass scan — findings refined in follow-on sessions |
+| All other commands | sonnet (inherited) | Good cost/quality ratio for implementation work |
+| `security-reviewer` agent | opus | Parallel security review needs same depth as /forge--sec |
+| All other agents | sonnet | Implementation and review tasks — sonnet sufficient |
+
+This table is the authoritative reference. If a model assignment changes, update this table
+first, then update the corresponding `model:` frontmatter line in the command or agent file.

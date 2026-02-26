@@ -80,7 +80,7 @@ for auditability. Do not duplicate the existing entry in code-reviewer.md.
 
 ---
 
-### T003: Add model selection table to agent_docs/architecture.md
+### T003: Add model selection table to agent_docs/architecture.md [COMPLETE 2026-02-26]
 Domain: ci
 Risk: low
 Depends on: T001, T002 (table documents the decisions made in those tasks)
@@ -106,9 +106,9 @@ The table must include:
 | All other agents | sonnet | Implementation and review tasks — sonnet sufficient |
 
 Definition of done:
-- [ ] `grep -n "Model Selection" agent_docs/architecture.md` returns a match
-- [ ] Table is present with all six rows above (minimum)
-- [ ] Section explains the alias convention (`opus`/`sonnet`/`haiku`, not full IDs)
+- [x] `grep -n "Model Selection" agent_docs/architecture.md` returns a match
+- [x] Table is present with all six rows above (minimum)
+- [x] Section explains the alias convention (`opus`/`sonnet`/`haiku`, not full IDs)
 
 Notes: The architecture.md file is currently a template with [FILL IN] sections.
 Add the Model Selection section at the bottom without removing the existing template
