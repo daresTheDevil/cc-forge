@@ -104,21 +104,83 @@ When implementation is done and all tests pass:
 
 ---
 
-## Emit JSON Signal
+## Task Completion — Emit Agent Handoff
 
-Output ONLY valid JSON. Nothing before it. Nothing after it. No markdown fences.
+After each task completes (regardless of status), write an inter-agent handoff file
+using the template at `templates/agent-handoff.md`.
 
-Required fields:
-- `status`: `"next"` (more tasks remain in plan) | `"complete"` (this was the last task) | `"blocked"` (human input required) | `"failed"` (tests did not pass)
-- `task_id`: ID of the task just attempted (e.g., `"T003"`)
-- `completed_tasks`: all task IDs completed so far in this build run
-- `next_task`: ID of the next task, or `null` if complete/blocked
-- `blockers`: array of `{task_id, reason}` — empty array if none
-- `tests_passed`: `true` or `false` — if false, build.sh will halt
-- `commit_hash`: short git hash of implementation commit, or `null` if uncommitted
-- `summary`: one sentence (10–300 chars) describing what this task accomplished
+**File path:** `.forge/handoffs/agent-{TASK_ID}-{YYYYMMDD-HHMMSS}.md`
 
-Example output:
+Example: `.forge/handoffs/agent-T003-20260225-143201.md`
+
+Steps:
+1. Create `.forge/handoffs/` if it does not exist.
+2. Copy the structure from `templates/agent-handoff.md`.
+3. Populate all fields from the current task context:
+   - `From`: `build-agent`
+   - `To`: next task ID or `operator` if this is the last task or if blocked
+   - `Plan`: the plan file path
+   - `Task`: the current task ID
+   - `Context`: 1–3 sentences summarising what this task's scope was and what it established
+   - `Findings`: key decisions made, constraints discovered, patterns used
+   - `Files Modified`: repo-relative paths of every file written or changed
+   - `Open Questions`: items the next agent or operator must resolve; empty list if none
+   - `Recommendations`: specific actionable direction for the next agent
+
+**Status-specific behaviour:**
+
+- **`status: complete` or `status: next`** — set Signal `status` to `"complete"`,
+  `blocking` to `false`. Note it in the SITREP but do not interrupt the build loop.
+
+- **`status: partial`** — set Signal `status` to `"partial"`, `blocking` to `false`.
+  Log a warning line: `[CC-Forge] WARNING: T{N} completed partially — review handoff before continuing.`
+  Continue to the next task.
+
+- **`status: blocked`** — set Signal `status` to `"blocked"`, `blocking` to `true`.
+  Populate `Open Questions` with every unresolved blocker.
+  **The build loop halts here.** Do NOT proceed to the next task.
+  Print: `[CC-Forge] BUILD HALTED: T{N} is blocked. Resolve open questions in the agent handoff before resuming.`
+
+This agent handoff is separate from the JSON signal below. The build loop reads
+the JSON signal; the agent handoff is for the receiving agent (human or next Claude
+session) to orient from. Do not omit the handoff even if the task was trivial.
+
+---
+
+## Build Signal
+
+This command runs in two modes. Choose the output format for your mode:
+
+---
+
+### Interactive mode — slash command (`/forge--build`)
+
+Output a rich human-readable completion report using this exact structure:
+
+```
+---
+## Build: {task_id} — {STATUS EMOJI}  {status}
+
+| Field    | Value                                      |
+|----------|--------------------------------------------|
+| Status   | {next / complete / blocked / failed}       |
+| Tests    | {✓ passed / ✗ FAILED}                     |
+| Commit   | {short hash or —}                          |
+
+**Summary:** {one sentence describing what was accomplished}
+
+**Completed so far:** {T001, T002, …}
+**Next task:** {T00N} — {task title from plan, or "plan complete" / "BLOCKED"}
+
+{If status = blocked: list each blocker as "• T00N: reason"}
+{If status = failed: state which test failed and why}
+---
+```
+
+Status emojis: `next` → ▶, `complete` → ✓, `blocked` → ⚠, `failed` → ✗
+
+Then append the machine-readable signal in a fenced JSON block (for copy-paste / debugging):
+
 ```json
 {
   "status": "next",
@@ -131,5 +193,21 @@ Example output:
   "summary": "Implemented JWT refresh token rotation with 7-day expiry and secure httpOnly cookie storage."
 }
 ```
+
+---
+
+### Headless mode — invoked by `build.sh` with `--json-schema`
+
+When `--json-schema` is active the CLI enforces structured output at the API level.
+Output ONLY valid JSON — no prose, no markdown fences. The schema fields:
+
+- `status`: `"next"` | `"complete"` | `"blocked"` | `"failed"`
+- `task_id`: ID of the task just attempted (e.g., `"T003"`)
+- `completed_tasks`: all task IDs completed so far in this build run
+- `next_task`: ID of the next task, or `null` if complete/blocked
+- `blockers`: array of `{task_id, reason}` — empty array if none
+- `tests_passed`: `true` or `false` — if false, build.sh will halt
+- `commit_hash`: short git hash of implementation commit, or `null` if uncommitted
+- `summary`: one sentence (10–300 chars) describing what this task accomplished
 
 ## Plan/Task: $ARGUMENTS

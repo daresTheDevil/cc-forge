@@ -339,7 +339,7 @@ Definition of done:
 
 ---
 
-### T008: Update commands/build.md — inter-agent handoff emission
+### T008: Update commands/build.md — inter-agent handoff emission [COMPLETE 2026-02-26]
 Domain: ci
 Risk: medium
 Depends on: T007
@@ -364,11 +364,11 @@ should instruct Claude to:
 3. If status is `partial`: log a warning and continue to next task
 
 Definition of done:
-- [ ] `grep -n "agent-handoff" commands/build.md` returns at least one match
-- [ ] `grep -n "blocked" commands/build.md` returns a match in the new section
+- [x] `grep -n "agent-handoff" commands/build.md` returns at least one match
+- [x] `grep -n "blocked" commands/build.md` returns a match in the new section
       stating the loop halts on blocked status
-- [ ] The new section references `templates/agent-handoff.md` by name
-- [ ] The existing "Emit JSON Signal" section is unchanged
+- [x] The new section references `templates/agent-handoff.md` by name
+- [x] The existing "Emit JSON Signal" section is unchanged
 
 Notes: Do not change the existing JSON signal schema — the agent handoff is a
 separate Markdown file. The build loop reads the JSON signal; the agent handoff
