@@ -484,7 +484,7 @@ it must detect conflicts rather than silently overwriting:
 
 ---
 
-### T011 — Update `/forge--blast` to read global graph for cross-project blast radius
+### T011 — Update `/forge--blast` to read global graph for cross-project blast radius ✅ COMPLETE 2026-02-25
 
 `commands/blast.md` currently only reads the project-level graph. Update it to
 also read the global graph and surface cross-project impact: if you change a shared
