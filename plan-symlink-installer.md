@@ -287,7 +287,7 @@ forge update
 
 ---
 
-### T007 — Update README
+### T007 — Update README ✅ COMPLETE 2026-02-25
 
 Document the new flow clearly.
 
