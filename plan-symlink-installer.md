@@ -154,7 +154,7 @@ done
 
 ---
 
-### T004 — Register project in global graph on `forge init`
+### T004 — Register project in global graph on `forge init` ✅ COMPLETE 2026-02-25
 
 When `forge init` runs in a project, write the project path into
 `~/.claude/forge/registry/global-graph.json` under a `forge-project` entity.

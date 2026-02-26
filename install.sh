@@ -214,6 +214,40 @@ install_symlink() {
 }
 
 # ---------------------------------------------------------------------------
+# Project registration: write this project path into the global registry
+# ---------------------------------------------------------------------------
+register_project() {
+  local project_path="$PWD"
+  local project_name
+  project_name="$(basename "$project_path")"
+  local registry="${HOME}/.claude/forge/registry/global-graph.json"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    warn "jq not found — skipping project registration"
+    return 0
+  fi
+
+  if [ ! -f "$registry" ]; then
+    warn "Global registry not found at $registry — skipping project registration"
+    warn "Run 'cc-forge' (global install) first, then re-run forge init."
+    return 0
+  fi
+
+  # Add or update entity for this project path (deduplicate by path)
+  local updated
+  updated="$(jq --arg name "$project_name" --arg path "$project_path" --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
+    .entities = (
+      [.entities[] | select(.path != $path)] +
+      [{"type": "forge-project", "name": $name, "path": $path, "registered_at": $ts}]
+    ) |
+    .last_updated = $ts
+  ' "$registry")"
+
+  printf '%s' "$updated" > "$registry"
+  success "Project registered in global registry: $project_name"
+}
+
+# ---------------------------------------------------------------------------
 # Install helper: create file with content if it doesn't exist
 # ---------------------------------------------------------------------------
 install_seed() {
@@ -494,6 +528,9 @@ if [ "$MODE" = "project" ]; then
       fi
     done
   fi
+
+  # Register this project in the global registry so `forge update` can find it
+  register_project
 
   header "Project install complete."
   printf '\n%sNext steps:%s\n' "$BOLD" "$RESET"
