@@ -1,6 +1,7 @@
 ---
 description: Rapid orientation scan for a new project or codebase. Produces a structured situation report and populates project-graph.json. Run this first when starting work on any new project.
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
+model: haiku
 ---
 
 # CC-Forge: RECON — Rapid Codebase Orientation
