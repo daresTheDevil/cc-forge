@@ -167,7 +167,7 @@ Always `mkdir -p .forge/logs` before writing.
 
 ---
 
-### T005: Create hooks/pre-compact.sh
+### T005: Create hooks/pre-compact.sh [COMPLETE 2026-02-26]
 Domain: ci
 Risk: low
 Depends on: none
@@ -195,12 +195,12 @@ Required output file structure:
 never file contents. Array may be empty `[]` if git unavailable or tree is clean.
 
 Definition of done:
-- [ ] Execute the script: `bash hooks/pre-compact.sh < /dev/null`
-- [ ] `.forge/logs/pre-compact-state.json` exists and is valid JSON
-- [ ] Contains all four required fields with correct types
-- [ ] Runs in a directory without `.forge/logs/` — creates directory, writes file, exits 0
-- [ ] Running without jq exits 0 (test with `PATH= bash hooks/pre-compact.sh`)
-- [ ] Script produces no stdout output (verify: `output=$(bash hooks/pre-compact.sh); [ -z "$output" ]`)
+- [x] Execute the script: `bash hooks/pre-compact.sh < /dev/null`
+- [x] `.forge/logs/pre-compact-state.json` exists and is valid JSON
+- [x] Contains all four required fields with correct types
+- [x] Runs in a directory without `.forge/logs/` — creates directory, writes file, exits 0
+- [x] Running without jq exits 0 (test with `PATH= bash hooks/pre-compact.sh`)
+- [x] Script produces no stdout output (verify: `output=$(bash hooks/pre-compact.sh); [ -z "$output" ]`)
 
 Notes: `mkdir -p .forge/logs` before writing. All output redirected to /dev/null or
 suppressed. This script must never print anything — it runs on the render path.
