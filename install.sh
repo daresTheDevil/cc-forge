@@ -184,6 +184,27 @@ install_file() {
 }
 
 # ---------------------------------------------------------------------------
+# Install helper: create symlink (always relinks — no --force flag needed)
+# ---------------------------------------------------------------------------
+install_symlink() {
+  local src="$1"    # path relative to ARTIFACTS_DIR
+  local dest="$2"
+  local src_path="${ARTIFACTS_DIR}/${src}"
+
+  if [ ! -e "$src_path" ]; then
+    printf '[CC-Forge] ❌ Source not found: %s\n' "$src_path" >&2
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$dest")"
+
+  # Always relink — removes stale copies or outdated symlinks
+  rm -f "$dest"
+  ln -sf "$src_path" "$dest"
+  printf '[CC-Forge] ✅ Linked: %s\n' "$dest"
+}
+
+# ---------------------------------------------------------------------------
 # Install helper: create file with content if it doesn't exist
 # ---------------------------------------------------------------------------
 install_seed() {
