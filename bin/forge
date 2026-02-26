@@ -79,7 +79,7 @@ case "$SUBCMD" in
     printf '[CC-Forge] Propagating global files...\n'
     NEW_INSTALL="$(npm root -g)/cc-forge/install.sh"
     if [ -f "$NEW_INSTALL" ]; then
-      bash "$NEW_INSTALL" --global --force --quiet
+      bash "$NEW_INSTALL" --global --force
     else
       printf '[CC-Forge] Warning: could not locate install.sh in npm package — global files not updated.\n' >&2
     fi
