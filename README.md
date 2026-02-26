@@ -329,6 +329,8 @@ CC-Forge stands on the shoulders of some genuinely good ideas:
 - **[Claude Code](https://docs.anthropic.com/claude-code)** — Anthropic's CLI that makes all of this possible. The hooks system, slash commands, and headless `claude -p` invocation are what CC-Forge is built on top of.
 - **[The Ralph Loop](https://shipyard.build/blog/claude-code-ralph-loop/)** — the pattern of using a shell script as the loop controller with Claude as a single-iteration executor. Separating "when to iterate" from "what to do in an iteration" is the insight that makes the Forge Loop reliable. Anthropic now ships an [official Ralph Wiggum plugin](https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum) for Claude Code.
 - **[get-shit-done](https://github.com/gsd-build/get-shit-done)** by TÂCHES — the spec-driven development workflow (DISCUSS → SPEC → PLAN → BUILD) that seeded CC-Forge's mode structure. The philosophy that a good system removes the friction between knowing what to do and actually doing it.
+- **[Pare](https://github.com/Dave-London/Pare)** — MCP servers that wrap common CLI tools and return structured, token-efficient JSON instead of raw terminal output. 83–95% token reduction on git, docker, and npm output. Informed CC-Forge's dual-output pattern and runner security practices.
+- **[everything-claude-code](https://github.com/affaan-m/everything-claude-code)** — a battle-tested Claude Code configuration layer with production-grade hook automations, multi-agent orchestration, and a continuous learning system. Informed CC-Forge's hook template design and inter-agent handoff schema.
 
 ---
 
