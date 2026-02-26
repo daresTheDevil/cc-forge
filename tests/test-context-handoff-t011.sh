@@ -187,16 +187,16 @@ else
     "no 'context-handoff.sh' found in $INSTALL_FILE"
 fi
 
-# Verify the install step is in the global section (before project section)
-# Count line numbers
-GLOBAL_SECTION_END=$(grep -n '"project"' "$INSTALL_FILE" | head -1 | cut -d: -f1 || echo "9999")
+# Verify the install step is in the global section (before the PROJECT INSTALL section)
+# Use the "# PROJECT INSTALL" comment as the boundary
+GLOBAL_SECTION_END=$(grep -n "# PROJECT INSTALL" "$INSTALL_FILE" | head -1 | cut -d: -f1 || echo "9999")
 HANDOFF_LINE=$(grep -n "context-handoff.sh" "$INSTALL_FILE" | head -1 | cut -d: -f1 || echo "0")
 
 if [ "$HANDOFF_LINE" -gt 0 ] && [ "$HANDOFF_LINE" -lt "$GLOBAL_SECTION_END" ]; then
   assert_pass "context-handoff.sh install step is in the global section"
 else
   assert_fail "context-handoff.sh install step is in the global section" \
-    "handoff line=$HANDOFF_LINE, global section ends around=$GLOBAL_SECTION_END"
+    "handoff line=$HANDOFF_LINE, project section starts at=$GLOBAL_SECTION_END"
 fi
 
 # ---------------------------------------------------------------------------
