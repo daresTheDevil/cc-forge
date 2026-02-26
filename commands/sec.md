@@ -1,6 +1,7 @@
 ---
 description: Full security audit of the project. Scans code, dependencies, secrets, and infrastructure. Updates .forge/security.json scorecard with findings. HALT findings stop all other work.
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
+model: opus
 ---
 
 # CC-Forge: SEC — Security Audit

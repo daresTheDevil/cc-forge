@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-26
+
+### Added
+- **`/forge--learn`** — session pattern extraction command; analyzes the current session for non-trivial solutions and writes structured skill files to the project memory directory; respects 180-line MEMORY.md threshold with archive housekeeping; never extracts credentials, tokens, or connection strings
+- **Inter-agent handoff schema** — `templates/agent-handoff.md` structured contract for handoffs between build agents; JSON Signal block with `blocking` field distinguishes blocked builds from normal task transitions
+- **Agent handoff emission in build** — `commands/build.md` now instructs BUILD mode to write `.forge/handoffs/agent-{TASK_ID}-{timestamp}.md` after every task; build loop halts and prints explicit message on `blocking: true`; separate from the JSON signal (machine reads signal, human/next agent reads handoff)
+- **Agent handoff detection on continue** — `commands/continue.md` Step 1 surfaces blocked `agent-*.md` handoffs before the session SITREP; non-blocking handoffs noted as recent task activity without interrupting the resume flow
+- **`hooks/context-handoff.sh`** — background script triggered by statusline threshold; writes minimal state handoff to `.forge/handoffs/handoff-{timestamp}.md` and registers `~/.claude/pending-resume`; fully silent (all output to `/dev/null`), always exits 0, never blocks the render path
+- **Context threshold detection in `statusline.sh`** — parses `used_percentage` from stdin JSON; displays inline `⚠ CTX N%` warning; triggers one-shot background context-handoff at configurable threshold (default `CONTEXT_THRESHOLD=70`); one-shot flag (`.forge/logs/context-threshold-triggered`) prevents re-firing within the same session; numeric guard and full error suppression protect the render path
+- **Model frontmatter** — `model:` alias added to commands (`sec` → `opus`, `plan` → `opus`, `recon` → `haiku`) and all five agents (`security-reviewer` → `opus`, all others → `sonnet`); Model Selection reference table added to `agent_docs/architecture.md`
+
+### Changed
+- **`hooks/session-end.sh`** — full rewrite; writes machine-readable JSON state to `.forge/logs/last-session.json` (ended\_at, branch, uncommitted\_changes, forge\_phase, forge\_task) and a `learn-pending` flag file; removes all placeholder stub-appending behaviour; gracefully degrades when jq is absent
+- **`hooks/pre-compact.sh`** — new hook; captures branch, uncommitted count, and recent dirty files to `.forge/logs/pre-compact-state.json` before context window auto-compaction; produces zero stdout (runs on the render path)
+- **`templates/settings.json`** — wires `PreCompact` hook; adds two new `SessionStart` entries (last-session digest banner + learn-pending notice with auto-cleanup); removes dead `~/.golem/` hook references that silently failed on every hook event; moves PostToolUse log target from `.golem/logs/` to `.forge/logs/file-changes.log`
+- **`hooks/statusline.sh`** — promoted from standalone file to cc-forge package; `install.sh --global` now symlinks it to `~/.claude/statusline.sh` so statusline updates ship with forge upgrades
+- **`commands/build.md` output** — mode-aware output instructions: rich human-readable completion table in interactive/slash-command mode; JSON-only schema contract for headless `build.sh` invocations (where `--json-schema` enforces structured output at the API level regardless)
+
+### Fixed
+- Dead `~/.golem/` hook references in `templates/settings.json` that silently failed on every `PreToolUse` and `PostToolUse` event since the golem directory does not exist
+
 ## [0.1.6] - 2026-02-25
 
 ### Added

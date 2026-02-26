@@ -1,3 +1,6 @@
+---
+model: opus
+---
 # CC-Forge: PLAN Mode
 # Activate with: /project:plan [path to approved spec]
 # Purpose: Decompose an approved spec into an ordered implementation graph.

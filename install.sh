@@ -353,6 +353,8 @@ if [ "$MODE" = "global" ]; then
   install_symlink "hooks/session-end.sh"                "${FORGE_DIR}/hooks/session-end.sh"
   install_symlink "hooks/validate-bash.sh"              "${FORGE_DIR}/hooks/validate-bash.sh"
   install_symlink "hooks/commit-msg.sh"                 "${FORGE_DIR}/hooks/commit-msg.sh"
+  install_symlink "hooks/context-handoff.sh"            "${FORGE_DIR}/context-handoff.sh"
+  install_symlink "hooks/statusline.sh"                 "${CLAUDE_DIR}/statusline.sh"
   install_symlink "agents/db-explorer.md"               "${FORGE_DIR}/agents/db-explorer.md"
   install_symlink "agents/test-writer.md"               "${FORGE_DIR}/agents/test-writer.md"
   install_symlink "agents/code-reviewer.md"             "${FORGE_DIR}/agents/code-reviewer.md"
