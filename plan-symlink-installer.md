@@ -406,7 +406,7 @@ Constraint format in global graph:
 
 ---
 
-### T008 — Add harvest classification logic to `/forge--recon` command
+### T008 — Add harvest classification logic to `/forge--recon` command ✅ COMPLETE 2026-02-25
 
 Update `commands/recon.md` to add a harvest pass at the end of the recon workflow.
 
