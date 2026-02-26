@@ -7,6 +7,7 @@
 #   forge init --force          Re-initialize, overwriting existing files
 #   forge build [plan.md]       Run headless TDD build loop from a plan file
 #   forge improve [--scope dir] Run continuous improvement loop
+#   forge deinit                Remove current project from global registry
 #   forge update                Update global CC-Forge install
 #   forge version               Show installed version
 #   forge help                  Show help
@@ -95,6 +96,19 @@ case "$SUBCMD" in
 
     printf '[CC-Forge] All done. Run `forge version` to confirm.\n'
     ;;
+  deinit)
+    REGISTRY="${HOME}/.claude/forge/registry/global-graph.json"
+    if [ -f "$REGISTRY" ] && command -v jq >/dev/null 2>&1; then
+      PROJECT_NAME="$(basename "$PWD")"
+      UPDATED="$(jq --arg path "$PWD" '
+        .entities = [.entities[] | select(.path != $path)]
+      ' "$REGISTRY")"
+      printf '%s' "$UPDATED" > "$REGISTRY"
+      printf '[CC-Forge] Project removed from global registry: %s\n' "$PROJECT_NAME"
+    else
+      printf '[CC-Forge] No registry found — nothing to deregister.\n'
+    fi
+    ;;
   version|--version|-v)
     PKG="${PACKAGE_DIR}/package.json"
     if [ -f "$PKG" ] && command -v jq >/dev/null 2>&1; then
@@ -113,7 +127,8 @@ case "$SUBCMD" in
     printf '  build plan.md --task T003  Resume build loop from a specific task\n'
     printf '  improve                    Run continuous improvement loop (current dir)\n'
     printf '  improve --scope src/       Run improvement loop scoped to a directory\n'
-    printf '  update                     Update to the latest CC-Forge version\n'
+    printf '  deinit                     Remove current project from global registry\n'
+  printf '  update                     Update to the latest CC-Forge version\n'
     printf '  version                    Show installed version\n'
     printf '  help                       Show this help\n\n'
     printf 'Examples:\n'

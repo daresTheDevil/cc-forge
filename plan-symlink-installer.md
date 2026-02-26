@@ -253,7 +253,7 @@ rm -rf /tmp/fp1 /tmp/fp2
 
 ---
 
-### T006 — Handle stale project entries (deregister on `forge deinit`)
+### T006 — Handle stale project entries (deregister on `forge deinit`) ✅ COMPLETE 2026-02-25
 
 Add a `forge deinit` command (or auto-cleanup in `forge update`) that removes
 project entries whose directories no longer exist.
