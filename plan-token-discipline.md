@@ -1,8 +1,8 @@
 # Implementation Plan: Token Discipline
 Spec: spec-token-discipline.md
-Status: IN PROGRESS
+Status: COMPLETE
 Created: 2026-02-25
-Last Updated: 2026-02-25
+Last Updated: 2026-02-26
 
 ---
 
@@ -505,7 +505,7 @@ script's job is just to register a pending-resume so the next session auto-loads
 
 ---
 
-### T012: Modify statusline.sh — context threshold detection
+### T012: Modify statusline.sh — context threshold detection [COMPLETE 2026-02-26]
 Domain: ci
 Risk: high
 Depends on: T011
@@ -562,19 +562,19 @@ Changes:
    existing printf output so it appears inline with forge version, time, project, git.
 
 Definition of done:
-- [ ] `grep -n "CONTEXT_THRESHOLD" ~/.claude/statusline.sh` returns a match at the top
-- [ ] `grep -n "used_percentage" ~/.claude/statusline.sh` returns a match
-- [ ] `grep -n "context-threshold-triggered" ~/.claude/statusline.sh` returns a match
-- [ ] `grep -n "context-handoff.sh" ~/.claude/statusline.sh` returns a match
-- [ ] Simulate threshold crossing: create `.forge/logs/` dir, then run
+- [x] `grep -n "CONTEXT_THRESHOLD" ~/.claude/statusline.sh` returns a match at the top
+- [x] `grep -n "used_percentage" ~/.claude/statusline.sh` returns a match
+- [x] `grep -n "context-threshold-triggered" ~/.claude/statusline.sh` returns a match
+- [x] `grep -n "context-handoff.sh" ~/.claude/statusline.sh` returns a match
+- [x] Simulate threshold crossing: create `.forge/logs/` dir, then run
       `echo '{"context_window":{"used_percentage":75}}' | bash ~/.claude/statusline.sh`
       and verify: warning appears in output, trigger file created, no errors
-- [ ] Simulate re-trigger: run again — verify trigger fires only ONCE (flag file blocks it)
-- [ ] Simulate below threshold: `echo '{"context_window":{"used_percentage":50}}' | bash ...`
+- [x] Simulate re-trigger: run again — verify trigger fires only ONCE (flag file blocks it)
+- [x] Simulate below threshold: `echo '{"context_window":{"used_percentage":50}}' | bash ...`
       — verify no warning, no trigger, no flag file
-- [ ] Simulate no stdin: `bash ~/.claude/statusline.sh < /dev/null` — exits 0, renders
+- [x] Simulate no stdin: `bash ~/.claude/statusline.sh < /dev/null` — exits 0, renders
       normally, no warning (graceful degradation when context data absent)
-- [ ] The existing statusline output (forge version, git, rate limits) is unchanged
+- [x] The existing statusline output (forge version, git, rate limits) is unchanged
 
 Notes: The integer comparison `[ "$CONTEXT_PCT" -ge "$CONTEXT_THRESHOLD" ]` will error
 if CONTEXT_PCT is empty or non-numeric. The `2>/dev/null` on the comparison suppresses
