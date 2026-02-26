@@ -163,11 +163,113 @@ Recommended first tasks:
 
 ---
 
+---
+
+## Phase 7: Harvest Pass — Promote Global Entities
+
+After writing `project-graph.json`, run a harvest pass to promote globally-relevant
+entities into `~/.claude/forge/registry/global-graph.json`.
+
+### 7a: Classify entities from the project graph
+
+Review every entity in `.claude/forge/registry/project-graph.json` and classify:
+
+| Entity Kind | Disposition |
+|---|---|
+| `database` | Global candidate (shared infrastructure) |
+| `service` (external — auth providers, HR systems, REST APIs) | Global candidate |
+| `pipeline_stage` | Global candidate (org-wide CI/CD) |
+| `k8s_resource` (cluster-level, e.g. Harbor, cluster itself) | Global candidate |
+| `service` (the app itself) | Project-only — do NOT harvest |
+| `api_endpoint` | Project-only — do NOT harvest |
+| `ui_component` | Project-only — do NOT harvest |
+
+### 7b: Conflict detection — run before writing anything
+
+For each global candidate, call `bin/harvest-merge.sh` (or apply the same logic
+interactively). The rules are strict:
+
+**Rule 1 — Identical:** Same `id`, same data → skip silently. Already current.
+
+**Rule 2 — Conflict:** Same `id`, different metadata → DO NOT silently overwrite.
+Show a diff to the user and ask which version wins. Only write after explicit confirmation.
+
+```
+CONFLICT: entity "db-mssql-konami" exists with different metadata.
+
+Existing (in global graph):
+  name: "Konami Synkros (MSSQL)"
+  description: "Slot management database"
+
+Candidate (from this project graph):
+  name: "Konami Synkros"
+  description: "Slot management and banned patron database — Konami Synkros system"
+
+Which version wins? [existing / candidate / skip]
+```
+
+**Rule 3 — Constraint preservation (non-negotiable):**
+If an existing entity in the global graph has a `constraints` array, those constraints
+MUST be preserved on any merge. Never silently drop constraints — only add new ones.
+This is especially critical for `db-oracle-sws` (READ ONLY account-level restriction).
+
+```json
+{
+  "id": "db-oracle-sws",
+  "constraints": [
+    {
+      "type": "access",
+      "value": "READ ONLY — account-level restriction, no write possible at runtime"
+    }
+  ]
+}
+```
+
+**Rule 4 — New entity:** No existing entity with this `id` → append cleanly.
+
+### 7c: Proposed harvest diff
+
+After classifying and checking for conflicts, output a proposed diff:
+
+```
+CC-Forge HARVEST — proposed additions to global-graph.json
+===========================================================
+NEW  (will append):
+  + db-mssql-konami     Konami Synkros (MSSQL)
+  + ext-ukg-rest        UKG REST API
+
+CONFLICTS (require your decision):
+  ~ db-oracle-sws       name differs — see diff above
+
+SKIP (already current):
+  = infra-microk8s      MicroK8s Cluster
+
+Proceed? [y/n/review]
+```
+
+Only write to `global-graph.json` after the user confirms.
+
+### 7d: Use harvest-merge.sh for non-interactive scripting
+
+When running in headless or scripted mode, call:
+
+```bash
+bash "$(npm prefix -g)/lib/node_modules/cc-forge/bin/harvest-merge.sh" \
+  "${HOME}/.claude/forge/registry/global-graph.json" \
+  "$ENTITY_JSON"
+```
+
+Exit codes: `0` = success (skipped or appended), `1` = error, `2` = conflict (halt, do not proceed).
+
+---
+
 ## Behavioral Imperatives
 
-- Read-only except for writing to `.claude/forge/registry/project-graph.json` and `agent_docs/`.
+- Read-only except for writing to `.claude/forge/registry/project-graph.json`,
+  `agent_docs/`, and `~/.claude/forge/registry/global-graph.json` (harvest, confirmed only).
 - Do NOT read `.env`, `.env.production`, or any secrets file.
 - Flag security issues found during recon with `[HALT][SEC]` — don't defer.
 - Populate registry with what you observed, not what you inferred.
+- Never silently overwrite global-graph entities — always show conflicts and ask.
 
 ## Project/Scope: $ARGUMENTS

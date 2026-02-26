@@ -466,7 +466,7 @@ jq '.entities[] | select(.constraints) | {id, constraints}' \
 
 ---
 
-### T010 — Conflict detection on harvest merge
+### T010 — Conflict detection on harvest merge ✅ COMPLETE 2026-02-25
 
 When harvest proposes merging an entity that already exists in the global graph,
 it must detect conflicts rather than silently overwriting:
