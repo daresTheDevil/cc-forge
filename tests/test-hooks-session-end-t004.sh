@@ -147,7 +147,9 @@ git -C "$TMPDIR_NOJQ" config user.email "test@test.com"
 git -C "$TMPDIR_NOJQ" config user.name "Test"
 
 # Run with empty PATH (no jq, no git — should not crash)
-NOJQ_EXIT=$(cd "$TMPDIR_NOJQ" && PATH="" bash "$HOOK_SCRIPT" < /dev/null > /dev/null 2>&1; echo $?)
+# Use full path to bash since PATH="" means bash cannot be found by name
+BASH_BIN="$(command -v bash)"
+NOJQ_EXIT=$(cd "$TMPDIR_NOJQ" && PATH="" "$BASH_BIN" "$HOOK_SCRIPT" < /dev/null > /dev/null 2>&1; echo $?)
 
 if [ "$NOJQ_EXIT" -eq 0 ]; then
   assert_pass "AC1.6 — exits 0 without jq in PATH"

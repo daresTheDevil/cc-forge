@@ -116,7 +116,7 @@ structure — other sections get populated during project recon on real projects
 
 ---
 
-### T004: Rewrite hooks/session-end.sh
+### T004: Rewrite hooks/session-end.sh [COMPLETE 2026-02-26]
 Domain: ci
 Risk: medium
 Depends on: none
@@ -153,13 +153,13 @@ Required output file structure for `.forge/logs/last-session.json`:
 `uncommitted_changes` from `git status --porcelain | wc -l`.
 
 Definition of done:
-- [ ] Execute the script in a test git directory: `bash hooks/session-end.sh < /dev/null`
-- [ ] `.forge/logs/last-session.json` exists and is valid JSON: `jq . .forge/logs/last-session.json`
-- [ ] `.forge/logs/last-session.json` contains all five required fields
-- [ ] `.forge/logs/learn-pending` exists (empty file, created by `touch`)
-- [ ] Running on a dirty tree prints a warning line containing the change count
-- [ ] Running on a machine without jq exits 0 (test with `PATH= bash hooks/session-end.sh`)
-- [ ] Script exits 0 in all cases
+- [x] Execute the script in a test git directory: `bash hooks/session-end.sh < /dev/null`
+- [x] `.forge/logs/last-session.json` exists and is valid JSON: `jq . .forge/logs/last-session.json`
+- [x] `.forge/logs/last-session.json` contains all five required fields
+- [x] `.forge/logs/learn-pending` exists (empty file, created by `touch`)
+- [x] Running on a dirty tree prints a warning line containing the change count
+- [x] Running on a machine without jq exits 0 (test with `PATH= bash hooks/session-end.sh`)
+- [x] Script exits 0 in all cases
 
 Notes: The old claude-progress.txt stub-appending behavior is REMOVED entirely.
 Do not preserve it. The learn-pending flag is a `touch` — no content, just existence.
