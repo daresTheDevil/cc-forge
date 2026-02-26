@@ -456,7 +456,7 @@ Definition of done:
 
 ---
 
-### T011: Create context-handoff.sh and wire into global install
+### T011: Create context-handoff.sh and wire into global install [COMPLETE 2026-02-26]
 Domain: ci
 Risk: medium
 Depends on: none
@@ -490,14 +490,14 @@ The `CONTEXT_THRESHOLD` variable (default `70`) must be defined at the top of
 in the statusline. This script does not need to know the threshold.
 
 Definition of done:
-- [ ] `hooks/context-handoff.sh` exists and is executable (`chmod +x`)
-- [ ] Running `bash hooks/context-handoff.sh` in a git directory creates
+- [x] `hooks/context-handoff.sh` exists and is executable (`chmod +x`)
+- [x] Running `bash hooks/context-handoff.sh` in a git directory creates
       `.forge/handoffs/handoff-*.md` and writes `~/.claude/pending-resume`
-- [ ] Script produces zero stdout/stderr output: `output=$(bash hooks/context-handoff.sh 2>&1); [ -z "$output" ]`
-- [ ] Script exits 0 when `.forge/` does not exist (creates it)
-- [ ] `install.sh` `--global` path includes a step to copy/symlink `context-handoff.sh`
+- [x] Script produces zero stdout/stderr output: `output=$(bash hooks/context-handoff.sh 2>&1); [ -z "$output" ]`
+- [x] Script exits 0 when `.forge/` does not exist (creates it)
+- [x] `install.sh` `--global` path includes a step to copy/symlink `context-handoff.sh`
       to `~/.claude/forge/context-handoff.sh`
-- [ ] `grep "context-handoff" install.sh` returns a match
+- [x] `grep "context-handoff" install.sh` returns a match
 
 Notes: The handoff written by this script is intentionally minimal — it captures
 state, not context. The full session state was captured by session-end.sh. This
