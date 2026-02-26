@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-02-25
+
+### Added
+- **Global graph harvest** — `/forge--recon` now runs a harvest pass after populating the project graph, classifying entities by kind and proposing globally-relevant ones (databases, external services, CI/CD, infra) for promotion to `~/.claude/forge/registry/global-graph.json`
+- **Harvest conflict detection** — `harvest-merge.sh` implements three-way merge: identical entities are skipped, metadata differences surface a diff and exit without writing, existing constraints are always preserved and never dropped
+- **PRR shared infrastructure seeded** — 13 Pearl River Resort shared infrastructure entities pre-loaded into global graph including Oracle SWS (with READ ONLY account-level constraint), all casino SQL Server sources, Microsoft Entra ID, LDAP, UKG REST API, Harbor registry, microk8s cluster, and Woodpecker CI
+- **Cross-project blast radius** — `/forge--blast` now reads the global graph alongside the project graph; identifies all registered repos that reference a shared entity so blast radius analysis works across projects
+
+## [0.1.5] - 2026-02-25
+
 ### Added
 - **One-command update** — `forge update` now updates the npm package AND re-initializes all registered projects in one step; no `--force` flag needed
 - **Project registry** — `forge init` registers each project path in `~/.claude/forge/registry/global-graph.json` so `forge update` knows what to update
