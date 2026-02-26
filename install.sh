@@ -18,20 +18,29 @@ set -euo pipefail
 
 # ---------------------------------------------------------------------------
 # Script location — all paths relative to this file
+# Resolves symlinks so that when install.sh is itself a symlink at
+# ~/.claude/forge/install.sh, ARTIFACTS_DIR points to the npm package dir.
 # ---------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_SELF="${BASH_SOURCE[0]}"
+# Follow the symlink chain to the real file
+while [ -L "$_SELF" ]; do
+  _SELF_DIR="$(cd "$(dirname "$_SELF")" && pwd)"
+  _SELF="$(readlink "$_SELF")"
+  # Handle relative symlinks
+  [[ "$_SELF" != /* ]] && _SELF="${_SELF_DIR}/${_SELF}"
+done
+SCRIPT_DIR="$(cd "$(dirname "$_SELF")" && pwd)"
 FORGE_CC_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# If this script is deployed to ~/.claude/forge/, cc-forge artifacts are
-# in the same directory as this script.
-# If running from the cc-forge/ repo directory, artifacts are in the same dir.
+# If this script is in the cc-forge/ repo, artifacts are here.
+# If it was invoked as a bare script (non-symlink deployed mode), same dir.
 if [ -f "${SCRIPT_DIR}/docs/implementation.md" ]; then
-  # Running from cc-forge/ repo
+  # Running from cc-forge/ repo (or symlink resolved to repo)
   ARTIFACTS_DIR="${SCRIPT_DIR}"
 elif [ -f "${FORGE_CC_DIR}/docs/implementation.md" ]; then
   ARTIFACTS_DIR="${FORGE_CC_DIR}"
 else
-  # Fallback: same directory as this script (deployed mode)
+  # Fallback: same directory as the resolved script
   ARTIFACTS_DIR="${SCRIPT_DIR}"
 fi
 
@@ -257,78 +266,78 @@ if [ "$MODE" = "global" ]; then
   header "Registry seed and schema..."
   install_seed "${FORGE_DIR}/registry/global-graph.json" \
     '{"version":"1.0","last_updated":null,"entities":[],"relationships":[]}'
-  install_file "templates/registry-graph-schema.json" "${FORGE_DIR}/registry/graph-schema.json"
+  install_symlink "templates/registry-graph-schema.json" "${FORGE_DIR}/registry/graph-schema.json"
 
   header "Loop scripts..."
-  install_file "loops/lib/improve-signal-schema.json" "${LOOPS_DIR}/lib/improve-signal-schema.json"
-  install_file "loops/lib/build-signal-schema.json"   "${LOOPS_DIR}/lib/build-signal-schema.json"
-  install_file "loops/lib/signals.sh"                 "${LOOPS_DIR}/lib/signals.sh"           "644"
-  install_file "loops/forge-loop.sh"                  "${LOOPS_DIR}/forge-loop.sh"             "755"
-  install_file "loops/build.sh"                       "${LOOPS_DIR}/build.sh"                  "755"
+  install_symlink "loops/lib/improve-signal-schema.json" "${LOOPS_DIR}/lib/improve-signal-schema.json"
+  install_symlink "loops/lib/build-signal-schema.json"   "${LOOPS_DIR}/lib/build-signal-schema.json"
+  install_symlink "loops/lib/signals.sh"                 "${LOOPS_DIR}/lib/signals.sh"
+  install_symlink "loops/forge-loop.sh"                  "${LOOPS_DIR}/forge-loop.sh"
+  install_symlink "loops/build.sh"                       "${LOOPS_DIR}/build.sh"
 
   header "Slash commands (forge-- prefix: double-dash separates namespace from command)..."
-  install_file "commands/discuss.md"     "${COMMANDS_DIR}/forge--discuss.md"
-  install_file "commands/spec.md"        "${COMMANDS_DIR}/forge--spec.md"
-  install_file "commands/plan.md"        "${COMMANDS_DIR}/forge--plan.md"
-  install_file "commands/build.md"       "${COMMANDS_DIR}/forge--build.md"
-  install_file "commands/improve.md"     "${COMMANDS_DIR}/forge--improve.md"
-  install_file "commands/review.md"      "${COMMANDS_DIR}/forge--review.md"
-  install_file "commands/fire.md"        "${COMMANDS_DIR}/forge--fire.md"
-  install_file "commands/blast.md"       "${COMMANDS_DIR}/forge--blast.md"
-  install_file "commands/recon.md"       "${COMMANDS_DIR}/forge--recon.md"
-  install_file "commands/sec.md"         "${COMMANDS_DIR}/forge--sec.md"
-  install_file "commands/simplify.md"    "${COMMANDS_DIR}/forge--simplify.md"
-  install_file "commands/diagnose.md"    "${COMMANDS_DIR}/forge--diagnose.md"
-  install_file "commands/drift-check.md" "${COMMANDS_DIR}/forge--drift-check.md"
-  install_file "commands/handoff.md"     "${COMMANDS_DIR}/forge--handoff.md"
-  install_file "commands/continue.md"    "${COMMANDS_DIR}/forge--continue.md"
-  install_file "commands/document.md"    "${COMMANDS_DIR}/forge--document.md"
+  install_symlink "commands/discuss.md"     "${COMMANDS_DIR}/forge--discuss.md"
+  install_symlink "commands/spec.md"        "${COMMANDS_DIR}/forge--spec.md"
+  install_symlink "commands/plan.md"        "${COMMANDS_DIR}/forge--plan.md"
+  install_symlink "commands/build.md"       "${COMMANDS_DIR}/forge--build.md"
+  install_symlink "commands/improve.md"     "${COMMANDS_DIR}/forge--improve.md"
+  install_symlink "commands/review.md"      "${COMMANDS_DIR}/forge--review.md"
+  install_symlink "commands/fire.md"        "${COMMANDS_DIR}/forge--fire.md"
+  install_symlink "commands/blast.md"       "${COMMANDS_DIR}/forge--blast.md"
+  install_symlink "commands/recon.md"       "${COMMANDS_DIR}/forge--recon.md"
+  install_symlink "commands/sec.md"         "${COMMANDS_DIR}/forge--sec.md"
+  install_symlink "commands/simplify.md"    "${COMMANDS_DIR}/forge--simplify.md"
+  install_symlink "commands/diagnose.md"    "${COMMANDS_DIR}/forge--diagnose.md"
+  install_symlink "commands/drift-check.md" "${COMMANDS_DIR}/forge--drift-check.md"
+  install_symlink "commands/handoff.md"     "${COMMANDS_DIR}/forge--handoff.md"
+  install_symlink "commands/continue.md"    "${COMMANDS_DIR}/forge--continue.md"
+  install_symlink "commands/document.md"    "${COMMANDS_DIR}/forge--document.md"
 
   header "Domain skills..."
-  install_file "skills/databases/ibmi.md"   "${SKILLS_DIR}/databases/ibmi.md"
-  install_file "skills/databases/mssql.md"  "${SKILLS_DIR}/databases/mssql.md"
-  install_file "skills/databases/oracle.md" "${SKILLS_DIR}/databases/oracle.md"
-  install_file "skills/frameworks/nuxt.md"  "${SKILLS_DIR}/frameworks/nuxt.md"
-  install_file "skills/frameworks/php.md"   "${SKILLS_DIR}/frameworks/php.md"
+  install_symlink "skills/databases/ibmi.md"   "${SKILLS_DIR}/databases/ibmi.md"
+  install_symlink "skills/databases/mssql.md"  "${SKILLS_DIR}/databases/mssql.md"
+  install_symlink "skills/databases/oracle.md" "${SKILLS_DIR}/databases/oracle.md"
+  install_symlink "skills/frameworks/nuxt.md"  "${SKILLS_DIR}/frameworks/nuxt.md"
+  install_symlink "skills/frameworks/php.md"   "${SKILLS_DIR}/frameworks/php.md"
 
   header "Install script (self-deploy)..."
-  install_file "install.sh" "${FORGE_DIR}/install.sh" "755"
+  install_symlink "install.sh" "${FORGE_DIR}/install.sh"
 
-  header "Project template bundle (needed by deployed install.sh --project)..."
-  # When install.sh runs from ~/.claude/forge/ instead of the cc-forge source dir,
-  # it looks for template files relative to itself. Bundle them here so project
-  # installs work from anywhere without needing the cc-forge source repo.
-  install_file "templates/project.toml"              "${FORGE_DIR}/templates/project.toml"
-  install_file "templates/CLAUDE-project.md"         "${FORGE_DIR}/templates/CLAUDE-project.md"
-  install_file "templates/settings.json"             "${FORGE_DIR}/templates/settings.json"
-  install_file "templates/forge-state.json"          "${FORGE_DIR}/templates/forge-state.json"
-  install_file "templates/forge-security.json"       "${FORGE_DIR}/templates/forge-security.json"
-  install_file "templates/registry-project-graph.json" "${FORGE_DIR}/templates/registry-project-graph.json"
-  install_file "hooks/pre-commit.sh"                 "${FORGE_DIR}/hooks/pre-commit.sh"
-  install_file "hooks/post-edit.sh"                  "${FORGE_DIR}/hooks/post-edit.sh"
-  install_file "hooks/pre-deploy.sh"                 "${FORGE_DIR}/hooks/pre-deploy.sh"
-  install_file "hooks/session-end.sh"                "${FORGE_DIR}/hooks/session-end.sh"
-  install_file "hooks/validate-bash.sh"              "${FORGE_DIR}/hooks/validate-bash.sh"
-  install_file "hooks/commit-msg.sh"                 "${FORGE_DIR}/hooks/commit-msg.sh"
-  install_file "agents/db-explorer.md"               "${FORGE_DIR}/agents/db-explorer.md"
-  install_file "agents/test-writer.md"               "${FORGE_DIR}/agents/test-writer.md"
-  install_file "agents/code-reviewer.md"             "${FORGE_DIR}/agents/code-reviewer.md"
-  install_file "agents/security-reviewer.md"         "${FORGE_DIR}/agents/security-reviewer.md"
-  install_file "agents/performance-reviewer.md"      "${FORGE_DIR}/agents/performance-reviewer.md"
-  install_file "agent_docs/architecture.md"          "${FORGE_DIR}/agent_docs/architecture.md"
-  install_file "agent_docs/database-schema.md"       "${FORGE_DIR}/agent_docs/database-schema.md"
-  install_file "agent_docs/api-patterns.md"          "${FORGE_DIR}/agent_docs/api-patterns.md"
-  install_file "agent_docs/k8s-layout.md"            "${FORGE_DIR}/agent_docs/k8s-layout.md"
-  install_file "agent_docs/legacy-guide.md"          "${FORGE_DIR}/agent_docs/legacy-guide.md"
-  install_file "agent_docs/testing-guide.md"         "${FORGE_DIR}/agent_docs/testing-guide.md"
-  install_file "agent_docs/runbooks/env-var-drift.md" "${FORGE_DIR}/agent_docs/runbooks/env-var-drift.md"
+  header "Project template bundle (symlinked — install.sh resolves ARTIFACTS_DIR via symlink target)..."
+  # install_symlink is used throughout: when install.sh is itself a symlink at
+  # ~/.claude/forge/install.sh, SCRIPT_DIR resolves to the npm package directory
+  # via the symlink, so all relative paths from ARTIFACTS_DIR remain correct.
+  install_symlink "templates/project.toml"              "${FORGE_DIR}/templates/project.toml"
+  install_symlink "templates/CLAUDE-project.md"         "${FORGE_DIR}/templates/CLAUDE-project.md"
+  install_symlink "templates/settings.json"             "${FORGE_DIR}/templates/settings.json"
+  install_symlink "templates/forge-state.json"          "${FORGE_DIR}/templates/forge-state.json"
+  install_symlink "templates/forge-security.json"       "${FORGE_DIR}/templates/forge-security.json"
+  install_symlink "templates/registry-project-graph.json" "${FORGE_DIR}/templates/registry-project-graph.json"
+  install_symlink "hooks/pre-commit.sh"                 "${FORGE_DIR}/hooks/pre-commit.sh"
+  install_symlink "hooks/post-edit.sh"                  "${FORGE_DIR}/hooks/post-edit.sh"
+  install_symlink "hooks/pre-deploy.sh"                 "${FORGE_DIR}/hooks/pre-deploy.sh"
+  install_symlink "hooks/session-end.sh"                "${FORGE_DIR}/hooks/session-end.sh"
+  install_symlink "hooks/validate-bash.sh"              "${FORGE_DIR}/hooks/validate-bash.sh"
+  install_symlink "hooks/commit-msg.sh"                 "${FORGE_DIR}/hooks/commit-msg.sh"
+  install_symlink "agents/db-explorer.md"               "${FORGE_DIR}/agents/db-explorer.md"
+  install_symlink "agents/test-writer.md"               "${FORGE_DIR}/agents/test-writer.md"
+  install_symlink "agents/code-reviewer.md"             "${FORGE_DIR}/agents/code-reviewer.md"
+  install_symlink "agents/security-reviewer.md"         "${FORGE_DIR}/agents/security-reviewer.md"
+  install_symlink "agents/performance-reviewer.md"      "${FORGE_DIR}/agents/performance-reviewer.md"
+  install_symlink "agent_docs/architecture.md"          "${FORGE_DIR}/agent_docs/architecture.md"
+  install_symlink "agent_docs/database-schema.md"       "${FORGE_DIR}/agent_docs/database-schema.md"
+  install_symlink "agent_docs/api-patterns.md"          "${FORGE_DIR}/agent_docs/api-patterns.md"
+  install_symlink "agent_docs/k8s-layout.md"            "${FORGE_DIR}/agent_docs/k8s-layout.md"
+  install_symlink "agent_docs/legacy-guide.md"          "${FORGE_DIR}/agent_docs/legacy-guide.md"
+  install_symlink "agent_docs/testing-guide.md"         "${FORGE_DIR}/agent_docs/testing-guide.md"
+  install_symlink "agent_docs/runbooks/env-var-drift.md" "${FORGE_DIR}/agent_docs/runbooks/env-var-drift.md"
 
   header "Global agents..."
-  install_file "agents/db-explorer.md"          "${AGENTS_DIR}/db-explorer.md"
-  install_file "agents/test-writer.md"          "${AGENTS_DIR}/test-writer.md"
-  install_file "agents/code-reviewer.md"        "${AGENTS_DIR}/code-reviewer.md"
-  install_file "agents/security-reviewer.md"    "${AGENTS_DIR}/security-reviewer.md"
-  install_file "agents/performance-reviewer.md" "${AGENTS_DIR}/performance-reviewer.md"
+  install_symlink "agents/db-explorer.md"          "${AGENTS_DIR}/db-explorer.md"
+  install_symlink "agents/test-writer.md"          "${AGENTS_DIR}/test-writer.md"
+  install_symlink "agents/code-reviewer.md"        "${AGENTS_DIR}/code-reviewer.md"
+  install_symlink "agents/security-reviewer.md"    "${AGENTS_DIR}/security-reviewer.md"
+  install_symlink "agents/performance-reviewer.md" "${AGENTS_DIR}/performance-reviewer.md"
 
   header "Global install complete."
   printf '\n%sNext steps:%s\n' "$BOLD" "$RESET"

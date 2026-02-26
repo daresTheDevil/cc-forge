@@ -113,7 +113,7 @@ ls -la ~/.claude/commands/forge--recon.md
 
 ---
 
-### T003 — Convert package-owned installs to symlinks
+### T003 — Convert package-owned installs to symlinks ✅ COMPLETE 2026-02-25
 
 In `install.sh`, replace `install_file` with `install_symlink` for all
 package-owned files.
