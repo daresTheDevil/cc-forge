@@ -273,7 +273,7 @@ to `.forge/logs/file-changes.log`, not deleted — the logging behavior is usefu
 
 ---
 
-### T007: Create templates/agent-handoff.md
+### T007: Create templates/agent-handoff.md [COMPLETE 2026-02-26]
 Domain: ci
 Risk: low
 Depends on: none
@@ -328,13 +328,13 @@ Task: {TASK_ID | none}
 ```
 
 Definition of done:
-- [ ] File exists at `templates/agent-handoff.md`
-- [ ] Contains all required sections: From, To, Timestamp, Plan, Task, Context,
+- [x] File exists at `templates/agent-handoff.md`
+- [x] Contains all required sections: From, To, Timestamp, Plan, Task, Context,
       Findings, Files Modified, Open Questions, Recommendations, Signal
-- [ ] Signal block contains all required fields: from, to, task_id, status,
+- [x] Signal block contains all required fields: from, to, task_id, status,
       files_modified, open_questions, blocking
-- [ ] Comment documents the three valid status values
-- [ ] `ls .forge/handoffs/agent-*.md` naming would NOT match `ls .forge/handoffs/handoff-*.md`
+- [x] Comment documents the three valid status values
+- [x] `ls .forge/handoffs/agent-*.md` naming would NOT match `ls .forge/handoffs/handoff-*.md`
       (globs are distinct — verify by inspection)
 
 ---
