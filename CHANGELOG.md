@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **One-command update** — `forge update` now updates the npm package AND re-initializes all registered projects in one step; no `--force` flag needed
+- **Project registry** — `forge init` registers each project path in `~/.claude/forge/registry/global-graph.json` so `forge update` knows what to update
+- **`forge deinit`** — removes the current project from the global registry
+- **Symlink-based global install** — package-owned files (`commands/`, `agents/`, `hooks/`, `loops/`, `skills/`, `templates/`) are now symlinked to the npm package instead of copied; updating npm automatically updates all global files
+- **`context: fork` on `/forge--build`** — build command now runs in an isolated subagent with no conversation history, giving a clean context on every invocation
+- **Smarter `test:coverage` warning** — `forge init` now detects vitest, jest, or nuxt and suggests the exact fix command instead of a `[command]` placeholder
+
+### Fixed
+- `forge update` previously used `pnpm dlx`/`npx` which ran from a temp dir and did not persist; now uses `npm install -g`
+- `forge version` now reads from `package.json` instead of the stale `forge.toml`
+- Symlink resolution in `bin/forge` — `PACKAGE_DIR` now uses `realpath` to resolve the npm symlink before computing paths, fixing global installs where `dirname` walked to `/opt/homebrew` instead of the package directory
+- Stale `/recon` reference in `commands/blast.md` updated to `/forge--recon`
+- `forge init` next-steps output corrected from `/recon` to `/forge--recon`
+
 ## [0.1.1] - 2026-02-25
 
 ### Added

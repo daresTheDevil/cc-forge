@@ -26,27 +26,33 @@ CC-Forge enforces the discipline you already believe in. It installs structured 
 
 ---
 
-## Install
+## Installing
 
 ```bash
 npm install -g cc-forge
-cc-forge --global
+cc-forge
 ```
 
-Or clone and install from source:
+Installs CC-Forge globally into `~/.claude/`. Run once. All global Claude Code files are
+installed as symlinks into the npm package, so they update automatically with the package.
 
-```bash
-git clone https://github.com/daresTheDevil/cc-forge
-cd cc-forge
-/opt/homebrew/bin/bash install.sh --global
-```
-
-Then add it to a project:
+## Adding to a project
 
 ```bash
 cd your-project
-cc-forge --project applications
+forge init
 ```
+
+Installs hooks, `agent_docs/`, config, and registers the project in the global registry.
+
+## Updating everything
+
+```bash
+forge update
+```
+
+Updates cc-forge globally and re-initializes all registered projects. One command keeps
+every global file and every registered project in sync with the latest package version.
 
 ### Requirements
 

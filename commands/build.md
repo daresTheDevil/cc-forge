@@ -1,3 +1,9 @@
+---
+description: CC-Forge BUILD — execute a single task from an approved plan. TDD-first.
+context: fork
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep, Task
+---
+
 # CC-Forge: BUILD — Single Task Execution
 # Invoked headless by ~/.claude/loops/build.sh via: claude -p "..." --json-schema build-signal-schema.json
 # Also usable interactively: /build plan-auth.md T003
