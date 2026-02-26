@@ -53,7 +53,7 @@ reformat the entire frontmatter. One line addition per file.
 
 ---
 
-### T002: Add model frontmatter to agents
+### T002: Add model frontmatter to agents [COMPLETE 2026-02-26]
 Domain: ci
 Risk: low
 Depends on: none
@@ -71,9 +71,9 @@ Files:
 - `agents/db-explorer.md` → add `model: sonnet`
 
 Definition of done:
-- [ ] `grep -n "model:" agents/*.md` returns exactly one match per file
-- [ ] security-reviewer.md contains `model: opus`
-- [ ] all others contain `model: sonnet`
+- [x] `grep -n "model:" agents/*.md` returns exactly one match per file
+- [x] security-reviewer.md contains `model: opus`
+- [x] all others contain `model: sonnet`
 
 Notes: Do not add `model: inherit` — explicit sonnet is preferred over inherited default
 for auditability. Do not duplicate the existing entry in code-reviewer.md.
