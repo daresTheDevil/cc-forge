@@ -42,6 +42,20 @@ ls -t .golem/handoffs/*.md 2>/dev/null | head -1
 ```
 If a Golem handoff is newer than any Forge handoff, note both and ask which to use.
 
+**Also check for blocked inter-agent handoffs:**
+```bash
+ls -t .forge/handoffs/agent-*.md 2>/dev/null | head -1
+```
+If an `agent-*.md` file exists AND its Signal block contains `"blocking": true`:
+- Surface it BEFORE the session handoff SITREP
+- Display: "BLOCKED BUILD: Task {task_id} is waiting for operator input."
+- Show the Open Questions section
+- Ask: "Resolve this blocker before resuming, or continue with session handoff?"
+- Do NOT proceed with either until operator responds
+
+If an `agent-*.md` file exists but `"blocking": false`: note it in the SITREP
+as recent task activity but do not interrupt the resume flow.
+
 ---
 
 ## Step 2: Load Current State

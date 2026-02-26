@@ -376,7 +376,7 @@ is for the receiving agent (human or next Claude session) to orient from.
 
 ---
 
-### T009: Update commands/continue.md — agent handoff detection
+### T009: Update commands/continue.md — agent handoff detection [COMPLETE 2026-02-26]
 Domain: ci
 Risk: medium
 Depends on: T007
@@ -408,11 +408,11 @@ as recent task activity but do not interrupt the resume flow.
 ```
 
 Definition of done:
-- [ ] `grep -n "agent-\*" commands/continue.md` returns at least one match
-- [ ] `grep -n "blocking" commands/continue.md` returns a match in the new section
-- [ ] The existing session handoff detection logic (handoff-*.md, pending-resume)
+- [x] `grep -n "agent-\*" commands/continue.md` returns at least one match
+- [x] `grep -n "blocking" commands/continue.md` returns a match in the new section
+- [x] The existing session handoff detection logic (handoff-*.md, pending-resume)
       is completely unchanged — read the full file before editing, verify after
-- [ ] New logic is added to Step 1 only, no other steps modified
+- [x] New logic is added to Step 1 only, no other steps modified
 
 Notes: This is the highest-risk edit in the plan. Read commands/continue.md in
 full before touching it. The existing resume flow is working — surgical addition only.
