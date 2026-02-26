@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-02-26
+
+### Fixed
+- `forge update` now runs `install.sh --global --force` after the npm install so hooks, commands, templates, agents, and the forge binary are all propagated — previously only the npm package was updated
+- `install.sh --global` now symlinks `bin/forge` to `~/.claude/forge/bin/forge`, replacing any stale binary left by older bootstrap methods
+- `npm install -g cc-forge` now auto-runs `install.sh --global` via postinstall — no separate bootstrap step required
+
 ## [0.2.0] - 2026-02-26
 
 ### Added
