@@ -419,7 +419,7 @@ full before touching it. The existing resume flow is working — surgical additi
 
 ---
 
-### T010: Create commands/learn.md
+### T010: Create commands/learn.md [COMPLETE 2026-02-26]
 Domain: ci
 Risk: low
 Depends on: none
@@ -447,12 +447,12 @@ Required content:
   `memory/archive-{YYYY-MM-DD}.md`, add only single-line summary reference per pattern
 
 Definition of done:
-- [ ] File exists at `commands/learn.md`
-- [ ] Frontmatter present with description and allowed-tools
-- [ ] Contains explicit "do not extract" list including credentials/tokens
-- [ ] Target path uses `$(pwd | tr '/' '-')` pattern, not `{hash}`
-- [ ] All eight required fields listed for learned file format
-- [ ] MEMORY.md housekeeping instructions present with 180-line threshold
+- [x] File exists at `commands/learn.md`
+- [x] Frontmatter present with description and allowed-tools
+- [x] Contains explicit "do not extract" list including credentials/tokens
+- [x] Target path uses `$(pwd | tr '/' '-')` pattern, not `{hash}`
+- [x] All eight required fields listed for learned file format
+- [x] MEMORY.md housekeeping instructions present with 180-line threshold
 
 ---
 
