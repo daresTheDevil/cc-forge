@@ -76,6 +76,14 @@ case "$SUBCMD" in
     printf '[CC-Forge] Updating to latest version...\n'
     npm install -g cc-forge@latest
 
+    printf '[CC-Forge] Propagating global files...\n'
+    NEW_INSTALL="$(npm root -g)/cc-forge/install.sh"
+    if [ -f "$NEW_INSTALL" ]; then
+      bash "$NEW_INSTALL" --global --force --quiet
+    else
+      printf '[CC-Forge] Warning: could not locate install.sh in npm package — global files not updated.\n' >&2
+    fi
+
     REGISTRY="${HOME}/.claude/forge/registry/global-graph.json"
     if [ -f "$REGISTRY" ] && command -v jq >/dev/null 2>&1; then
       PROJECTS="$(jq -r '.entities[] | select(.type == "forge-project") | .path' "$REGISTRY" 2>/dev/null)"
