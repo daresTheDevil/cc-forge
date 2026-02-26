@@ -334,8 +334,11 @@ if [ "$MODE" = "global" ]; then
   install_symlink "skills/frameworks/nuxt.md"  "${SKILLS_DIR}/frameworks/nuxt.md"
   install_symlink "skills/frameworks/php.md"   "${SKILLS_DIR}/frameworks/php.md"
 
-  header "Install script (self-deploy)..."
-  install_symlink "install.sh" "${FORGE_DIR}/install.sh"
+  header "Install script and CLI (self-deploy)..."
+  install_symlink "install.sh"  "${FORGE_DIR}/install.sh"
+  # Replace any stale forge binary in ~/.claude/forge/bin/ with the current package version
+  mkdir -p "${FORGE_DIR}/bin"
+  install_symlink "bin/forge" "${FORGE_DIR}/bin/forge"
 
   header "Project template bundle (symlinked — install.sh resolves ARTIFACTS_DIR via symlink target)..."
   # install_symlink is used throughout: when install.sh is itself a symlink at
