@@ -7,6 +7,8 @@
 #   forge init --force          Re-initialize, overwriting existing files
 #   forge build [plan.md]       Run headless TDD build loop from a plan file
 #   forge improve [--scope dir] Run continuous improvement loop
+#   forge setup                 Deploy global files to ~/.claude/
+#   forge setup --force         Re-deploy, overwriting existing files
 #   forge deinit                Remove current project from global registry
 #   forge update                Update global CC-Forge install
 #   forge version               Show installed version
@@ -72,17 +74,16 @@ case "$SUBCMD" in
     fi
     exec "$FORGE_LOOP" "$@"
     ;;
+  setup)
+    printf '[CC-Forge] Setting up global files...\n'
+    bash "${PACKAGE_DIR}/install.sh" --global "$@"
+    ;;
   update)
     printf '[CC-Forge] Updating to latest version...\n'
     npm install -g cc-forge@latest
 
     printf '[CC-Forge] Propagating global files...\n'
-    NEW_INSTALL="$(npm root -g)/cc-forge/install.sh"
-    if [ -f "$NEW_INSTALL" ]; then
-      bash "$NEW_INSTALL" --global --force
-    else
-      printf '[CC-Forge] Warning: could not locate install.sh in npm package — global files not updated.\n' >&2
-    fi
+    forge setup --force
 
     REGISTRY="${HOME}/.claude/forge/registry/global-graph.json"
     if [ -f "$REGISTRY" ] && command -v jq >/dev/null 2>&1; then
@@ -92,7 +93,7 @@ case "$SUBCMD" in
         while IFS= read -r project_path; do
           if [ -d "$project_path" ]; then
             printf '[CC-Forge] Updating: %s\n' "$project_path"
-            (cd "$project_path" && forge init --force --quiet) \
+            (cd "$project_path" && forge init --force) \
               && printf '[CC-Forge] Done: %s\n' "$project_path" \
               || printf '[CC-Forge] Failed: %s\n' "$project_path"
           else
@@ -135,8 +136,10 @@ case "$SUBCMD" in
     printf '  build plan.md --task T003  Resume build loop from a specific task\n'
     printf '  improve                    Run continuous improvement loop (current dir)\n'
     printf '  improve --scope src/       Run improvement loop scoped to a directory\n'
+    printf '  setup                      Deploy global files to ~/.claude/\n'
+    printf '  setup --force              Re-deploy global files, overwriting existing\n'
     printf '  deinit                     Remove current project from global registry\n'
-  printf '  update                     Update to the latest CC-Forge version\n'
+    printf '  update                     Update to the latest CC-Forge version\n'
     printf '  version                    Show installed version\n'
     printf '  help                       Show this help\n\n'
     printf 'Examples:\n'

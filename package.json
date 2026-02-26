@@ -1,6 +1,6 @@
 {
   "name": "cc-forge",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "CC-Forge: Claude Code coherence engine — global installer and project init CLI",
   "author": {
     "name": "David",
@@ -32,9 +32,6 @@
     "install.sh",
     "CHANGELOG.md"
   ],
-  "scripts": {
-    "postinstall": "bash install.sh --global || true"
-  },
   "engines": {
     "node": ">=16"
   },

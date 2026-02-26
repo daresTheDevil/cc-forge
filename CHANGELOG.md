@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-26
+
+### Changed
+- **Install architecture rewritten** — global file deployment is now explicit (`forge setup`) instead of happening silently in `postinstall`; matches the universal pattern used by eslint, husky, changesets, and every other major Node CLI tool
+- **`install.sh --global` uses copies, not symlinks** — all files deployed to `~/.claude/` are now plain copies; symlinks broke silently when the source npm package was removed, updated, or installed via `pnpm dlx` (which cleans up its temp dir on exit)
+- **`bin/cc-forge` rewritten as a bootstrapper** — `npx cc-forge` now does exactly two things: `npm install -g cc-forge@VERSION` (permanent install) then `forge setup` (file deployment); removed the heredoc forge script and shell profile PATH manipulation
+- **`forge update` simplified** — no longer hunts for `install.sh` via `npm root -g`; calls `forge setup --force` directly after the npm install
+
+### Added
+- **`forge setup`** — new subcommand; deploys global files from the npm package to `~/.claude/`; `--force` overwrites existing files (used by `forge update`)
+
+### Removed
+- **`scripts.postinstall`** from `package.json` — pnpm v10 and Bun both disable postinstall by default; the hook was silently skipped for a significant portion of installs
+- **`~/.claude/forge/bin/forge`** deploy — npm's `bin` field handles the binary; the separate copy in `~/.claude/forge/bin/` was redundant and fought with the npm-managed binary on updates
+
+### Fixed
+- `pnpm dlx cc-forge` no longer creates dangling symlinks to a temp dir that no longer exists after the command exits
+- `forge update` no longer fails when the npm package moves between global install paths (e.g. switching between npm and nvm node versions)
+
 ## [0.2.2] - 2026-02-26
 
 ### Fixed
