@@ -32,6 +32,9 @@
     "install.sh",
     "CHANGELOG.md"
   ],
+  "scripts": {
+    "postinstall": "bash install.sh --global --quiet || true"
+  },
   "engines": {
     "node": ">=16"
   },
