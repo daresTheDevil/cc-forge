@@ -113,6 +113,24 @@
             "command": "if [ -f claude-progress.txt ]; then printf '\\n[CC-Forge] Last session progress:\\n'; tail -15 claude-progress.txt; fi"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .forge/logs/last-session.json ] && command -v jq >/dev/null 2>&1; then ENDED=$(jq -r '.ended_at' .forge/logs/last-session.json); DIRTY=$(jq -r '.uncommitted_changes' .forge/logs/last-session.json); BRANCH=$(jq -r '.branch' .forge/logs/last-session.json); echo \"[CC-Forge] Last session: $ENDED | Branch: $BRANCH | Uncommitted: $DIRTY\"; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .forge/logs/learn-pending ]; then echo \"[CC-Forge] Pattern extraction available from last session. Run /forge--learn when ready.\"; rm -f .forge/logs/learn-pending; fi; rm -f .forge/logs/context-threshold-triggered 2>/dev/null; exit 0"
+          }
+        ]
       }
     ],
 
@@ -171,6 +189,18 @@
           {
             "type": "command",
             "command": "if [ -f .claude/hooks/post-edit.sh ]; then bash .claude/hooks/post-edit.sh; fi"
+          }
+        ]
+      }
+    ],
+
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .claude/hooks/pre-compact.sh ]; then bash .claude/hooks/pre-compact.sh; fi"
           }
         ]
       }

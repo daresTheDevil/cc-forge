@@ -207,7 +207,7 @@ suppressed. This script must never print anything — it runs on the render path
 
 ---
 
-### T006: Update templates/settings.json
+### T006: Update templates/settings.json [COMPLETE 2026-02-26]
 Domain: ci
 Risk: medium
 Depends on: T004, T005
@@ -258,12 +258,12 @@ Files:
 - `templates/settings.json`
 
 Definition of done:
-- [ ] `grep -r "golem" templates/settings.json` returns zero hits
-- [ ] `jq '.hooks.PreCompact' templates/settings.json` returns a non-null array
-- [ ] `jq '.hooks.SessionStart | length' templates/settings.json` is greater than
+- [x] `grep -r "golem" templates/settings.json` returns zero hits
+- [x] `jq '.hooks.PreCompact' templates/settings.json` returns a non-null array
+- [x] `jq '.hooks.SessionStart | length' templates/settings.json` is greater than
       the pre-change count (new entries added)
-- [ ] `jq . templates/settings.json` exits 0 (valid JSON throughout)
-- [ ] The `.golem/logs/file-changes.log` PostToolUse write is removed or changed
+- [x] `jq . templates/settings.json` exits 0 (valid JSON throughout)
+- [x] The `.golem/logs/file-changes.log` PostToolUse write is removed or changed
       to `.forge/logs/file-changes.log`
 
 Notes: Read the full current file before editing. Do not accidentally remove the
